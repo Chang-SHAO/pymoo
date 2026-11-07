@@ -4,7 +4,11 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.17.1
+    jupytext_version: 1.17.2
+kernelspec:
+  name: default
+  display_name: default
+  language: python
 ---
 
 ```{raw-cell}
@@ -12,6 +16,17 @@ jupytext:
 
 .. _nb_scatter:
 ```
+
+.. meta::
+   :description: The traditional scatter plot is mostly used for lower dimensional objective spaces
+
++++
+
+.. meta::
+   :keywords: Scatter Plot, visualization, plot, high-dimensional data, multi-objective optimization, pymoo, Python
+
++++
+
 
 ## Scatter Plot
 

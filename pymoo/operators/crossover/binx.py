@@ -1,3 +1,5 @@
+"""Binomial crossover operator."""
+
 import numpy as np
 
 from pymoo.core.crossover import Crossover
@@ -18,7 +20,6 @@ def mut_binomial(n, m, prob, at_least_once=True, random_state=None):
 
 
 class BinomialCrossover(Crossover):
-
     def __init__(self, bias=0.5, n_offsprings=2, **kwargs):
         super().__init__(2, n_offsprings, **kwargs)
         self.bias = Real(bias, bounds=(0.1, 0.9), strict=(0.0, 1.0))

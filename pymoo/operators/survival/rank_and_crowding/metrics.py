@@ -1,3 +1,5 @@
+"""Crowding diversity metrics for multi-objective optimization."""
+
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 from pymoo.util.misc import find_duplicates
@@ -26,7 +28,6 @@ def get_crowding_function(label):
 
 
 class CrowdingDiversity:
-
     def do(self, F, n_remove=0):
         # Converting types Python int to Cython int would fail in some cases converting to long instead
         n_remove = np.intc(n_remove)
@@ -38,7 +39,6 @@ class CrowdingDiversity:
 
 
 class FunctionalDiversity(CrowdingDiversity):
-
     def __init__(self, function=None, filter_out_duplicates=True):
         self.function = function
         self.filter_out_duplicates = filter_out_duplicates
@@ -52,7 +52,6 @@ class FunctionalDiversity(CrowdingDiversity):
             return np.full(n_points, np.inf)
 
         else:
-
             if self.filter_out_duplicates:
                 # filter out solutions which are duplicates - duplicates get a zero finally
                 is_unique = np.where(np.logical_not(find_duplicates(F, epsilon=1e-32)))[0]
@@ -72,7 +71,6 @@ class FunctionalDiversity(CrowdingDiversity):
 
 
 class FuncionalDiversityMNN(FunctionalDiversity):
-
     def _do(self, F, **kwargs):
 
         n_points, n_obj = F.shape
@@ -88,8 +86,7 @@ def calc_crowding_distance(F, **kwargs):
     n_points, n_obj = F.shape
 
     # sort each column and get index
-    I = np.argsort(F, axis=0, kind='mergesort')
-
+    I = np.argsort(F, axis=0, kind="mergesort")  # noqa: E741
     # sort the objective space values for the whole matrix
     F = F[I, np.arange(n_obj)]
 
@@ -110,31 +107,33 @@ def calc_crowding_distance(F, **kwargs):
 
     # sum up the distance to next and last and norm by objectives - also reorder from sorted list
     J = np.argsort(I, axis=0)
-    cd = np.sum(dist_to_last[J, np.arange(n_obj)] + dist_to_next[J, np.arange(n_obj)], axis=1) / n_obj
+    cd = (
+        np.sum(
+            dist_to_last[J, np.arange(n_obj)] + dist_to_next[J, np.arange(n_obj)],
+            axis=1,
+        )
+        / n_obj
+    )
 
     return cd
 
 
-def calc_crowding_entropy(F, **kwargs):
-    """Wang, Y.-N., Wu, L.-H. & Yuan, X.-F., 2010. Multi-objective self-adaptive differential 
-    evolution with elitist archive and crowding entropy-based diversity measure. 
+def calc_crowding_entropy(F: np.ndarray, **kwargs: object) -> np.ndarray:
+    """Wang, Y.-N., Wu, L.-H. & Yuan, X.-F., 2010. Multi-objective self-adaptive differential evolution with elitist archive and crowding entropy-based diversity measure.
+
     Soft Comput., 14(3), pp. 193-209.
 
-    Parameters
-    ----------
-    F : 2d array like
-        Objective functions.
+    Args:
+        F: Objective functions (2d array).
+        **kwargs: Additional arguments.
 
-    Returns
-    -------
-    ce : 1d array
-        Crowding Entropies
+    Returns:
+        Crowding Entropies (1d array).
     """
     n_points, n_obj = F.shape
 
     # sort each column and get index
-    I = np.argsort(F, axis=0, kind='mergesort')
-
+    I = np.argsort(F, axis=0, kind="mergesort")  # noqa: E741
     # sort the objective space values for the whole matrix
     F = F[I, np.arange(n_obj)]
 
@@ -157,13 +156,17 @@ def calc_crowding_entropy(F, **kwargs):
     cd = dl + du
 
     # Get relative positions
-    pl = (dl[1:-1] / cd[1:-1])
-    pu = (du[1:-1] / cd[1:-1])
+    pl = dl[1:-1] / cd[1:-1]
+    pu = du[1:-1] / cd[1:-1]
 
     # Entropy
-    entropy = np.vstack([np.full(n_obj, np.inf),
-                         -(pl * np.log2(pl) + pu * np.log2(pu)),
-                         np.full(n_obj, np.inf)])
+    entropy = np.vstack(
+        [
+            np.full(n_obj, np.inf),
+            -(pl * np.log2(pl) + pu * np.log2(pu)),
+            np.full(n_obj, np.inf),
+        ]
+    )
 
     # Crowding entropy
     J = np.argsort(I, axis=0)
@@ -196,7 +199,7 @@ def _calc_mnn_fast(F, n_neighbors, **kwargs):
 
     # M neighbors
     M = F.shape[1]
-    _D = np.partition(D, range(1, M+1), axis=1)[:, 1:M+1]
+    _D = np.partition(D, range(1, M + 1), axis=1)[:, 1 : M + 1]
 
     # Metric d
     d = np.prod(_D, axis=1)

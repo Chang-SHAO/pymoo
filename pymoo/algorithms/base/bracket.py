@@ -1,8 +1,11 @@
+"""Base class for bracketing search algorithms over a single-variable interval."""
+
 from pymoo.core.algorithm import Algorithm
 from pymoo.core.individual import Individual
 
 
 class BracketSearch(Algorithm):
+    """Search an interval ``[a, b]`` bracketing the optimum of a 1-D problem."""
 
     def __init__(self, a=None, b=None, **kwargs):
         super().__init__(**kwargs)
@@ -35,4 +38,3 @@ class BracketSearch(Algorithm):
             self.evaluator.eval(self.problem, self.b, algorithm=self)
 
         assert self.a.X[0] <= self.b.X[0], "The left bound must be smaller than the left bound!"
-

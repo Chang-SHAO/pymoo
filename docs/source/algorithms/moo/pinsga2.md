@@ -87,7 +87,7 @@ algorithm = PINSGA2(pop_size=30,
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 100),
+               ('n_gen', 60),
                seed=1,
                verbose=False)
 
@@ -120,3 +120,11 @@ plot.show()
 .. autoclass:: pymoo.algorithms.moo.pinsga2.PINSGA2
     :noindex:
 ```
+
++++
+
+### Acknowledgement
+
+The PI-NSGA-II implementation in pymoo was contributed by [Ian Kropp](https://github.com/kroppian).
+
+*Thank you for the contribution — pymoo grows through community contributions like this one.*

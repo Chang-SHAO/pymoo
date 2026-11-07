@@ -1,3 +1,5 @@
+"""Mutation operator for evolutionary algorithms."""
+
 from copy import deepcopy
 
 from pymoo.core.operator import Operator
@@ -6,6 +8,7 @@ from pymoo.util import default_random_state
 
 
 class Mutation(Operator):
+    """Base class for mutation operators."""
 
     def __init__(self, prob=1.0, prob_var=None, **kwargs) -> None:
         super().__init__(**kwargs)

@@ -1,3 +1,5 @@
+"""R-Metric indicator for constrained regions of interest."""
+
 import numpy as np
 from scipy.spatial.distance import cdist
 
@@ -7,27 +9,18 @@ from pymoo.indicators.igd import IGD
 
 
 class RMetric(Indicator):
+    """R-Metric indicator for constrained regions of interest."""
 
     def __init__(self, problem, ref_points, w=None, delta=0.2, pf=None):
+        """Initialize R-Metric indicator.
+
+        Args:
+            problem: Problem instance.
+            ref_points: List of reference points.
+            w: Weights for each objective.
+            delta: Delta value representing the region of interest.
+            pf: Pareto front.
         """
-
-        Parameters
-        ----------
-        
-        problem : class
-            problem instance
-            
-        ref_points : numpy.array
-            list of reference points
-
-        w : numpy.array
-            weights for each objective
-
-        delta : float
-            The delta value representing the region of interest
-
-        """
-
         Indicator.__init__(self)
         self.ref_points = ref_points
         self.problem = problem
@@ -87,12 +80,12 @@ class RMetric(Indicator):
         idx = np.argmin(agg_value)
         zp = [data[idx, :]]
 
-        return zp,
+        return (zp,)
 
     def _translate(self, zp, trimmed_data, ref_point, w_point):
         # Solution translation - Matlab reproduction
         # find k
-        temp = ((zp[0] - ref_point) / (w_point - ref_point))
+        temp = (zp[0] - ref_point) / (w_point - ref_point)
         kIdx = np.argmax(temp)
 
         # find zl
@@ -112,37 +105,21 @@ class RMetric(Indicator):
         return filtered_matrix
 
     def _trim_fast(self, pop, centeroid, range=0.2):
-        centeroid_matrix = cdist(pop, centeroid, metric='euclidean')
+        centeroid_matrix = cdist(pop, centeroid, metric="euclidean")
         filtered_matrix = pop[np.where(centeroid_matrix < range / 2), :][0]
         return filtered_matrix
 
     def do(self, F, others=None, calc_hv=True):
-        """
+        """Calculate R-IGD and R-HV indicators.
 
-        This method calculates the R-IGD and R-HV based off of the values provided.
-        
-        
-        Parameters
-        ----------
+        Args:
+            F: Objective space values.
+            others: Results from other algorithms for filtering dominated solutions.
+            calc_hv: Whether to calculate hypervolume (None if more than 3 dimensions).
 
-        F : numpy.ndarray
-            The objective space values
-
-        others : numpy.ndarray
-            Results from other algorithms which should be used for filtering nds solutions
-
-        calc_hv : bool
-            Whether the hv is calculate - (None if more than 3 dimensions)
-
-
-        Returns
-        -------
-        rigd : float
-            R-IGD
-
-        rhv : float
-            R-HV if calc_hv is true and less or equal to 3 dimensions
-
+        Returns:
+            rigd: R-IGD value.
+            rhv: R-HV value if calc_hv is True and dimensions <= 3.
         """
         self.F, self.others = F, others
 
@@ -183,7 +160,6 @@ class RMetric(Indicator):
         rigd, rhv = None, None
 
         if len(translated) > 0:
-
             # IGD Computation
             rigd = IGD(final_PF).do(translated)
 
@@ -194,7 +170,7 @@ class RMetric(Indicator):
                 if dim <= 3:
                     try:
                         rhv = Hypervolume(ref_point=nadir_point).do(front)
-                    except:
+                    except Exception:  # noqa: E722
                         pass
 
         if calc_hv:

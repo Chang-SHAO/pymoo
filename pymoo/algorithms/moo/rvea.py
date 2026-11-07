@@ -1,3 +1,5 @@
+"""Reference Vector Guided Evolutionary Algorithm (RVEA)."""
+
 import numpy as np
 
 from pymoo.algorithms.base.genetic import GeneticAlgorithm
@@ -14,40 +16,38 @@ from pymoo.util.misc import has_feasible, vectorized_cdist
 
 
 class RVEA(GeneticAlgorithm):
+    def __init__(
+        self,
+        ref_dirs,
+        alpha=2.0,
+        adapt_freq=0.1,
+        pop_size=None,
+        sampling=FloatRandomSampling(),
+        selection=RandomSelection(),
+        crossover=SBX(eta=30, prob=1.0),
+        mutation=PM(eta=20),
+        eliminate_duplicates=True,
+        n_offsprings=None,
+        output=MultiObjectiveOutput(),
+        **kwargs,
+    ):
+        """Initialize RVEA algorithm.
 
-    def __init__(self,
-                 ref_dirs,
-                 alpha=2.0,
-                 adapt_freq=0.1,
-                 pop_size=None,
-                 sampling=FloatRandomSampling(),
-                 selection=RandomSelection(),
-                 crossover=SBX(eta=30, prob=1.0),
-                 mutation=PM(eta=20),
-                 eliminate_duplicates=True,
-                 n_offsprings=None,
-                 output=MultiObjectiveOutput(),
-                 **kwargs):
+        Args:
+            ref_dirs: {ref_dirs}
+            alpha: Exponent for generation-based penalty scaling.
+            adapt_freq: Defines the ratio of generation when the reference directions are updated.
+            pop_size: By default the population size is set to None which means that it will be equal to the number of reference
+                line. However, if desired this can be overwritten by providing a positive number.
+            sampling: {sampling}
+            selection: {selection}
+            crossover: {crossover}
+            mutation: {mutation}
+            eliminate_duplicates: {eliminate_duplicates}
+            n_offsprings: {n_offsprings}
+            output: {output}
+            **kwargs: Additional arguments passed to parent class.
         """
-
-        Parameters
-        ----------
-
-        ref_dirs : {ref_dirs}
-        adapt_freq : float
-            Defines the ratio of generation when the reference directions are updated.
-        pop_size : int (default = None)
-            By default the population size is set to None which means that it will be equal to the number of reference
-            line. However, if desired this can be overwritten by providing a positive number.
-        sampling : {sampling}
-        selection : {selection}
-        crossover : {crossover}
-        mutation : {mutation}
-        eliminate_duplicates : {eliminate_duplicates}
-        n_offsprings : {n_offsprings}
-
-        """
-
         # set reference directions and pop_size
         self.ref_dirs = ref_dirs
         if self.ref_dirs is not None:
@@ -62,16 +62,18 @@ class RVEA(GeneticAlgorithm):
         if survival is None:
             survival = APDSurvival(ref_dirs, alpha=alpha)
 
-        super().__init__(pop_size=pop_size,
-                         sampling=sampling,
-                         selection=selection,
-                         crossover=crossover,
-                         mutation=mutation,
-                         survival=survival,
-                         eliminate_duplicates=eliminate_duplicates,
-                         n_offsprings=n_offsprings,
-                         output=output,
-                         **kwargs)
+        super().__init__(
+            pop_size=pop_size,
+            sampling=sampling,
+            selection=selection,
+            crossover=crossover,
+            mutation=mutation,
+            survival=survival,
+            eliminate_duplicates=eliminate_duplicates,
+            n_offsprings=n_offsprings,
+            output=output,
+            **kwargs,
+        )
 
     def _setup(self, problem, **kwargs):
 
@@ -105,8 +107,9 @@ class RVEA(GeneticAlgorithm):
 # Survival Selection
 # ---------------------------------------------------------------------------------------------------------
 
+
 def calc_gamma(V):
-    gamma = np.arccos((- np.sort(-1 * V @ V.T))[:, 1])
+    gamma = np.arccos((-np.sort(-1 * V @ V.T))[:, 1])
     gamma = np.maximum(gamma, 1e-64)
     return gamma
 
@@ -116,7 +119,6 @@ def calc_V(ref_dirs):
 
 
 class APDSurvival(Survival):
-
     def __init__(self, ref_dirs, alpha=2.0) -> None:
         super().__init__(filter_infeasible=True)
         n_dim = ref_dirs.shape[1]
@@ -137,7 +139,16 @@ class APDSurvival(Survival):
             self.V = calc_V(calc_V(self.ref_dirs) * (self.nadir - self.ideal))
             self.gamma = calc_gamma(self.V)
 
-    def _do(self, problem, pop, n_survive, algorithm=None, n_gen=None, n_max_gen=None, **kwargs):
+    def _do(
+        self,
+        problem,
+        pop,
+        n_survive,
+        algorithm=None,
+        n_gen=None,
+        n_max_gen=None,
+        **kwargs,
+    ):
 
         if n_gen is None:
             n_gen = algorithm.n_gen - 1
@@ -174,13 +185,11 @@ class APDSurvival(Survival):
 
         # for each reference direction
         for k in range(len(self.V)):
-
             # individuals assigned to the niche
             assigned_to_niche = niches_to_ind[k]
 
             # if niche not empty
             if len(assigned_to_niche) > 0:
-
                 # the angle of niche to nearest neighboring niche
                 gamma = self.gamma[k]
 

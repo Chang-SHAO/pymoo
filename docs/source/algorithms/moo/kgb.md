@@ -17,6 +17,16 @@ kernelspec:
 .. _nb_kgb:
 ```
 
+.. meta::
+   :description: An implementation of KGB-DMOEA (Knowledge-Guided Bayesian Dynamic Multi-Objective Evolutionary Algorithm), a dynamic multi-objective optimizer that reuses past knowledge with a Bayesian classifier to respond to changing environments.
+
++++
+
+.. meta::
+   :keywords: KGB-DMOEA, KGB, Knowledge-Guided Bayesian, Dynamic Multi-objective Optimization, Multi-objective Optimization, Python
+
++++
+
 # KGB-DMOEA: Knowledge-Guided Bayesian Dynamic Multi-Objective Evolutionary Algorithm
 
 +++
@@ -68,3 +78,11 @@ res = minimize(problem,
 ```{raw-cell}
 Yulong Ye, Lingjie Li, Qiuzhen Lin, Ka-Chun Wong, Jianqiang Li, Zhong Ming. “A knowledge guided Bayesian classification for dynamic multi-objective optimization”. Knowledge-Based Systems, Volume 251, 2022.
 ```
+
++++
+
+### Acknowledgement
+
+The KGB-DMOEA implementation in pymoo was contributed by [Charles David Mupende](https://github.com/bandundu).
+
+*Thank you for the contribution — pymoo grows through community contributions like this one.*

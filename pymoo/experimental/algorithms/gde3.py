@@ -1,3 +1,5 @@
+"""GDE3: Generalized Differential Evolution 3 algorithm."""
+
 from pymoo.algorithms.moo.nsga2 import RankAndCrowdingSurvival
 from pymoo.algorithms.soo.nonconvex.de import DE, Variant
 from pymoo.core.population import Population
@@ -10,11 +12,9 @@ from pymoo.termination.default import DefaultMultiObjectiveTermination
 
 
 class GDE3(DE):
-
     def __init__(self, variant=None, **kwargs):
 
         if variant is None:
-
             if "control" not in kwargs:
                 kwargs["control"] = NoParameterControl
 

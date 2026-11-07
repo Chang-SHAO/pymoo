@@ -16,7 +16,7 @@ from os.path import dirname
 SOURCE = os.path.dirname(os.path.realpath(__file__))
 
 sys.path.insert(0, SOURCE)
-from _theme import *
+# from _theme import *  # Disabled custom theme imports
 
 ROOT = dirname(dirname(SOURCE))
 sys.path.insert(0, ROOT)
@@ -49,13 +49,15 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-    'numpydoc',
+    'sphinx.ext.napoleon',
     'nbsphinx',
     'sphinx.ext.intersphinx',
     'sphinx.ext.coverage',
     'matplotlib.sphinxext.plot_directive',
     'sphinxcontrib.bibtex',
     'sphinx_copybutton',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.githubpages',
 ]
 
 bibtex_bibfiles = ['references.bib']
@@ -64,17 +66,47 @@ bibtex_bibfiles = ['references.bib']
 # HTML
 # ===========================================================================
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-html_theme = '_theme'
-html_theme_path = ['.']
+html_theme = 'sphinx_book_theme'
 html_logo = "_static/logo.svg"
 html_favicon = '_static/favicon.ico'
+
+# Sphinx Book Theme configuration
+html_theme_options = {
+    "default_mode": "light",
+    "repository_url": "https://github.com/anyoptimization/pymoo",
+    "repository_branch": "main",
+    "path_to_docs": "docs/source",
+    "use_repository_button": True,
+    "use_issues_button": True,
+    "use_download_button": False,
+    "use_edit_page_button": True,
+    "use_source_button": True,
+    "show_navbar_depth": 1,
+    "collapse_navigation": True,
+    "navigation_depth": 1,
+    "navbar_end": ["navbar-icon-links"],
+    "nosidebar": True,  # Disable the right sidebar
+    "home_page_in_toc": True,  # Show Home link in sidebar
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# Add custom CSS
+html_css_files = [
+    'css/custom.css',
+]
+
+# Add custom JS
+html_js_files = [
+    'js/pymoo-sidebar.js',
+]
+
+# Copy specific files to the root of the build directory
+html_extra_path = ['_static/llms.txt', '_static/robots.txt']
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -97,28 +129,18 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
 
 # Exclude build directory and Jupyter backup files:
 exclude_patterns = ['build', '**.ipynb_checkpoints']
-if DEBUG:
-    # exclude_patterns.append("**ipynb")
 
+# Fast/check mode: render only non-notebook pages by excluding every .ipynb.
+# A fast smoke-render of the Sphinx pipeline (seconds, not minutes) — useful for
+# iterating on render config/logging without paying for the full notebook set.
+# Triggered by `pyclawd docs render --fast` / `build --fast` (PYMOO_DOCS_FAST_MODE)
+# or the legacy check mode (PYMOO_DOCS_CHECK_MODE).
+CHECK_MODE = os.environ.get('PYMOO_DOCS_CHECK_MODE', '0') == '1'
+FAST_MODE = os.environ.get('PYMOO_DOCS_FAST_MODE', '0') == '1'
 
-    # exclude_patterns.append("getting_started*")
-    # exclude_patterns.append("interface*")
-    # exclude_patterns.append("problems*")
-    #
-    # exclude_patterns.append("problems/single/*")
-    # exclude_patterns.append("problems/multi/*")
-    # exclude_patterns.append("problems/many/*")
-    # exclude_patterns.append("problems/constrained/*")
-    #
-    # exclude_patterns.append("algorithms*")
-    # exclude_patterns.append("customization*")
-    # exclude_patterns.append("operators*")
-    # exclude_patterns.append("visualization*")
-    # exclude_patterns.append("api*")
-    # exclude_patterns.append("decision_making*")
-    # exclude_patterns.append("misc*")
-
-    pass
+if CHECK_MODE or FAST_MODE:
+    print("Fast/check mode enabled - excluding all ipynb files for faster rendering")
+    exclude_patterns.append("**/*.ipynb")
 
 
 # Default language for syntax highlighting in reST and Markdown cells
@@ -151,7 +173,7 @@ nbsphinx_execute_arguments = [
 # nbsphinx_timeout = 60
 
 # Default Pygments lexer for syntax highlighting in code cells:
-# nbsphinx_codecell_lexer = 'ipython3'
+nbsphinx_codecell_lexer = 'python'
 
 # Width of input/output prompts used in CSS:
 # nbsphinx_prompt_width = '8ex'
@@ -164,34 +186,18 @@ pygments_style = 'friendly'
 
 
 # ===========================================================================
-# Numpydoc
+# Napoleon (numpy + google docstrings)
 # ===========================================================================
 
-
-# Whether to produce plot:: directives for Examples sections that contain import matplotlib or from matplotlib import.
-numpydoc_use_plots = True
-
-# Whether to show all members of a class in the Methods and Attributes sections automatically. True by default.
-numpydoc_show_class_members = True
-
-# Whether to show all inherited members of a class in the Methods and Attributes sections automatically.
-# If it’s false, inherited members won’t shown. True by default.
-numpydoc_show_inherited_class_members = False
-
-# Whether to create a Sphinx table of contents for the lists of class algorithms and attributes.
-# If a table of contents is made, Sphinx expects each entry to have a separate page. True by default.
-numpydoc_class_members_toctree = False
-
-# A regular expression matching citations which should be mangled to avoid conflicts due to duplication across
-# the documentation. Defaults to [\w-]+.
-# numpydoc_citation_re = False
-
-# Until version 0.8, parameter definitions were shown as blockquotes, rather than in a definition list.
-# If your styling requires blockquotes, switch this config option to True. This option will be removed in version 0.10.
-numpydoc_use_blockquotes = False
-
-# Deprecated since version edit: your HTML template instead. Whether to insert an edit link after docstrings.
-numpydoc_edit_link = False
+# Both styles are enabled so the codebase can migrate numpy -> google
+# module-by-module without ever breaking the docs build. Once the migration is
+# complete, set napoleon_numpy_docstring = False.
+napoleon_numpy_docstring = True
+napoleon_google_docstring = True
+napoleon_include_init_with_doc = False
+napoleon_use_param = True
+napoleon_use_rtype = True
+napoleon_use_ivar = True
 
 # ===========================================================================
 # sphinx-copybutton
@@ -203,4 +209,52 @@ copybutton_prompt_is_regexp = True
 copybutton_only_copy_prompt_lines = True
 copybutton_remove_prompts = True
 copybutton_copy_empty_lines = False
+
+# ===========================================================================
+# nbsphinx
+# ===========================================================================
+
+# Disable RequireJS to avoid conflicts with clipboard.min.js
+nbsphinx_requirejs_path = ""
+
+# ===========================================================================
+# Custom Source File Mapping for Edit Button
+# ===========================================================================
+
+def setup(app):
+    """
+    Custom setup function to modify the source file mapping.
+    This ensures that the "Edit Source" button links to .md files instead of .ipynb files.
+    """
+    def html_page_context(app, pagename, templatename, context, doctree):
+        """
+        Add JavaScript to fix edit button URLs to point to .md files.
+        """
+        # Add JavaScript that will fix the edit button URLs after page load
+        fix_edit_urls_js = """
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all edit and source buttons and fix their URLs
+            const editButtons = document.querySelectorAll('a[href*="/edit/"], a[href*="/blob/"]');
+            editButtons.forEach(button => {
+                if (button.href.includes('.ipynb')) {
+                    button.href = button.href.replace('.ipynb', '.md');
+                }
+            });
+        });
+        </script>
+        """
+        
+        # Add the JavaScript to the page context
+        context['fix_edit_urls_js'] = fix_edit_urls_js
+    
+    # Connect the function to the html-page-context event
+    app.connect('html-page-context', html_page_context)
+    
+    return {
+        'version': '1.0',
+        'parallel_read_safe': True,
+        'parallel_write_safe': True,
+    }
+
 

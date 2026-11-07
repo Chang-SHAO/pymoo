@@ -1,21 +1,4 @@
-"""
-
-Particle Swarm Optimization (PSO)
-
--------------------------------- Description -------------------------------
-
-
-
--------------------------------- References --------------------------------
-
-[1] J. Blank and K. Deb, pymoo: Multi-Objective Optimization in Python, in IEEE Access,
-vol. 8, pp. 89497-89509, 2020, DOI: 10.1109/ACCESS.2020.2990567
-
--------------------------------- License -----------------------------------
-
-
-----------------------------------------------------------------------------
-"""
+"""Particle Swarm Optimization with Epsilon Pioneer (EPPSO)."""
 
 import numpy as np
 
@@ -44,7 +27,10 @@ from pymoo.util.sliding_window import SlidingWindow
 @default_random_state
 def pso_canonical(V, X, P_X, L_X, w, c1, c2, random_state=None):
     n_particles, n_var = X.shape
-    r1, r2 = random_state.random((n_particles, n_var)), random_state.random((n_particles, n_var))
+    r1, r2 = (
+        random_state.random((n_particles, n_var)),
+        random_state.random((n_particles, n_var)),
+    )
     Vp = w * V + c1 * r1 * (P_X - X) + c2 * r2 * (L_X - X)
     return Vp
 
@@ -57,12 +43,12 @@ def pso_rotation_invariant(V, X, P_X, L_X, inertia, c1, c2, random_state=None):
     p = X + c1 * r1 * (P_X - X)
 
     r2 = random_state.random((n_particles, n_var))
-    l = X + c2 * r2 * (L_X - X)
+    local_pos = X + c2 * r2 * (L_X - X)
 
-    G = (X + p + l) / 3
+    G = (X + p + local_pos) / 3
     r = np.linalg.norm(G - X, axis=1, keepdims=True)
 
-    Vp = inertia * V + alea_sphere(G, r) - X
+    Vp = inertia * V + alea_sphere(G, r, random_state=random_state) - X
 
     return Vp
 
@@ -72,23 +58,24 @@ def alea_sphere(G, radius, random_state=None):
     n, m = G.shape
 
     x = random_state.normal(size=(n, m))
-    l = np.sqrt(np.sum(x ** 2, axis=1, keepdims=True))
+    norm = np.sqrt(np.sum(x**2, axis=1, keepdims=True))
 
     r = random_state.random(size=(n, 1))
-    x = r * radius * x / l
+    x = r * radius * x / norm
     return x + G
 
 
 class Swarm(InfillCriterion):
-
-    def __init__(self,
-                 w=0.7,
-                 c1=1.4,
-                 c2=1.4,
-                 V_max=0.2,
-                 prob_mut=0.33,
-                 control=EvolutionaryParameterControl,
-                 **kwargs):
+    def __init__(
+        self,
+        w=0.7,
+        c1=1.4,
+        c2=1.4,
+        V_max=0.2,
+        prob_mut=0.33,
+        control=EvolutionaryParameterControl,
+        **kwargs,
+    ):
 
         super().__init__(**kwargs)
         self.w = Real(w, bounds=(0.7, 0.9), strict=(0.0, 1.0))
@@ -186,24 +173,27 @@ def get_neighbors(name, N, random_state=None):
 
 
 class EPPSO(GeneticAlgorithm):
+    def __init__(
+        self,
+        pop_size=100,
+        sampling=FloatRandomSampling(),
+        swarm=Swarm(),
+        topology="star",
+        init_V="zero",
+        output=SingleObjectiveOutput(),
+        **kwargs,
+    ):
 
-    def __init__(self,
-                 pop_size=100,
-                 sampling=FloatRandomSampling(),
-                 swarm=Swarm(),
-                 topology="star",
-                 init_V="zero",
-                 output=SingleObjectiveOutput(),
-                 **kwargs):
-
-        super().__init__(pop_size=pop_size,
-                         sampling=sampling,
-                         mating=swarm,
-                         init_V=init_V,
-                         n_offsprings=None,
-                         eliminate_duplicates=NoDuplicateElimination(),
-                         output=output,
-                         **kwargs)
+        super().__init__(
+            pop_size=pop_size,
+            sampling=sampling,
+            mating=swarm,
+            init_V=init_V,
+            n_offsprings=None,
+            eliminate_duplicates=NoDuplicateElimination(),
+            output=output,
+            **kwargs,
+        )
 
         # how the initial weights should be created
         self.init_V = Choice(init_V, options=["zero", "random"])
@@ -285,10 +275,8 @@ class EPPSO(GeneticAlgorithm):
 
         # now receive the messages and set the new local best (if an improvement has been found)
         for k, msg in enumerate(msgs):
-
             # if messages have been received
             if len(msg) > 0:
-
                 # find the best one from the swarm that have been send
                 i = msg[rank[msg].argmin()]
 
@@ -304,4 +292,3 @@ class EPPSO(GeneticAlgorithm):
 
 
 parse_doc_string(EPPSO.__init__)
-

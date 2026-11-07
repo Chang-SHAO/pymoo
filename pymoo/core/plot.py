@@ -1,42 +1,48 @@
+"""Base class for custom plotting functionality."""
+
 import importlib
 
 import numpy as np
-from pymoo.visualization.matplotlib import matplotlib, plt, colors, ListedColormap
+from pymoo.visualization.matplotlib import matplotlib, plt, ListedColormap
 
 from pymoo.util.misc import set_if_none
 from pymoo.visualization.util import default_number_to_text, in_notebook
 
 
 class Plot:
-
-    def __init__(self,
-                 fig=None,
-                 ax=None,
-                 figsize=(8, 6),
-                 title=None,
-                 legend=False,
-                 tight_layout=False,
-                 bounds=None,
-                 reverse=False,
-                 cmap="tab10",
-                 axis_style=None,
-                 axis_label_style=None,
-                 func_number_to_text=default_number_to_text,
-                 labels="f",
-                 close_on_destroy=True,
-                 **kwargs):
+    def __init__(
+        self,
+        fig=None,
+        ax=None,
+        figsize=(8, 6),
+        title=None,
+        legend=False,
+        tight_layout=False,
+        bounds=None,
+        reverse=False,
+        cmap="tab10",
+        axis_style=None,
+        axis_label_style=None,
+        func_number_to_text=default_number_to_text,
+        labels="f",
+        close_on_destroy=True,
+        **kwargs,
+    ):
 
         super().__init__()
 
         # change the font of plots to serif (looks better)
-        plt.rc('font', family='serif')
+        plt.rc("font", family="serif")
 
-        # the matplotlib classes
+        # the matplotlib classes — publicly accessible after do()/show()/save()
+        # you can also use get_figure() and get_axes() helper methods
         self.fig = fig
         self.ax = ax
         self.figsize = figsize
 
         # whether the figure should be closed when object is destroyed
+        # set to False if you want to keep the figure alive after the Plot object
+        # goes out of scope (e.g. to further customise or display it)
         self.close_on_destroy = close_on_destroy
 
         # the title of the figure - can also be a list if subfigures
@@ -93,7 +99,7 @@ class Plot:
         else:
             importlib.import_module("mpl_toolkits.mplot3d")
             self.fig = plt.figure(figsize=self.figsize)
-            self.ax = self.fig.add_subplot(1, 1, 1, projection='3d')
+            self.ax = self.fig.add_subplot(1, 1, 1, projection="3d")
 
         # if there is more than one figure we represent it as a 2D numpy array
         if (n_rows > 1 or n_cols > 1) or force_axes_as_matrix:
@@ -115,7 +121,6 @@ class Plot:
         axes = np.array(self.ax).flatten()
 
         for i, ax in enumerate(axes):
-
             legend, kwargs = get_parameter_with_options(self.legend)
             if legend:
                 ax.legend(**kwargs)
@@ -170,11 +175,20 @@ class Plot:
         self.plot_if_not_done_yet()
 
         # in a notebook the plot method need not to be called explicitly
-        if not in_notebook() and matplotlib.get_backend() != "agg":
+        if not in_notebook() and matplotlib.get_backend().lower() != "agg":
             plt.show(**kwargs)
-            plt.close()
+            # NOTE: plt.close() removed — callers can now close the figure themselves
+            # if needed, e.g.: plot.fig.savefig(...); plt.close(plot.fig)
 
         return self
+
+    def get_figure(self):
+        self.plot_if_not_done_yet()
+        return self.fig
+
+    def get_axes(self):
+        self.plot_if_not_done_yet()
+        return self.ax
 
     def save(self, fname, **kwargs):
         self.plot_if_not_done_yet()

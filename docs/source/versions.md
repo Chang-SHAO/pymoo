@@ -34,10 +34,54 @@ kernelspec:
 ```{raw-cell}
 :raw_mimetype: text/restructuredtext
 
+.. _version_0_6_2:
+```
+
+#### 0.6.2 [[Documentation](http://archive.pymoo.org/0.6.2/)]
+
+- New Algorithm: Omni-Optimizer for multi-modal multi-objective optimization (#776)
+- Fixed GDE3 (and its MNN/2NN/PCD variants) to be deterministic for a fixed seed
+- Restored CMA-ES compatibility with NumPy 2.x (now requires cma>=3.4.0)
+- Documentation: complete and consistent algorithm overview; new pages for SPEA2, Omni-Optimizer, GDE3, NSDE, and NSDE-R; added PSO, G3PCX, AGE-MOEA2, D-NSGA-II, KGB, and C-TAEA to the listing; contributor acknowledgements on each community-contributed page; refreshed news
+- Added a behavior-regression ("golden") test suite and extended the determinism tests across all algorithms
+- Repo-wide code-quality pass: linting, formatting, and whole-package type-checking
+
+```{raw-cell}
+:raw_mimetype: text/restructuredtext
+
+.. _version_0_6_1_6:
+```
+
+#### 0.6.1.6 [[Documentation](http://archive.pymoo.org/0.6.1.6/)]
+
+- Updated documentation with new Sphinx Book Theme
+- Fix PCP visualization not displaying plots (#752)
+- Fix SPEA2 strength calculation axis (#755)
+- Faster bi-objective non-dominated sorting with O(N log N) complexity (#754)
+- Fix NoCrossover to properly handle n_offsprings parameter (#744)
+- Python 3.14 and aarch64 Linux wheels support (#758)
+- Revert Meta class to original shared __dict__ implementation for stability
+- Remove forced Agg backend to allow interactive matplotlib displays
+
+```{raw-cell}
+:raw_mimetype: text/restructuredtext
+
+.. _version_0_6_1_5:
+```
+
+#### 0.6.1.5 [[Documentation](http://archive.pymoo.org/0.6.1.5/)]
+
+- Additional bug fixes and stability improvements
+- Enhanced compatibility across different environments
+- Performance optimizations
+
+```{raw-cell}
+:raw_mimetype: text/restructuredtext
+
 .. _version_0_6_1_3:
 ```
 
-#### 0.6.1.3 [[Documentation](http://archive.pymoo.org/0.6.3/)]
+#### 0.6.1.3 [[Documentation](http://archive.pymoo.org/0.6.1.3/)]
 
 - Compatibility with Numpy 2.0
 - Make Autograd for Automatic Differentiation Optional

@@ -1,21 +1,4 @@
-"""
-
-Differential Evolution (DE)
-
--------------------------------- Description -------------------------------
-
-
-
--------------------------------- References --------------------------------
-
-[1] J. Blank and K. Deb, pymoo: Multi-Objective Optimization in Python, in IEEE Access,
-vol. 8, pp. 89497-89509, 2020, DOI: 10.1109/ACCESS.2020.2990567
-
--------------------------------- License -----------------------------------
-
-
-----------------------------------------------------------------------------
-"""
+"""Differential Evolution (DE) algorithm."""
 
 import numpy as np
 
@@ -44,6 +27,7 @@ from pymoo.util.misc import where_is_what
 # Crossover
 # =========================================================================================================
 
+
 @default_random_state
 def de_differential(X, F, jitter, alpha=0.001, random_state=None):
     n_parents, n_matings, n_var = X.shape
@@ -57,7 +41,7 @@ def de_differential(X, F, jitter, alpha=0.001, random_state=None):
         # create the weight vectors with jitter to give some variation
         _F = F[:, None].repeat(n_var, axis=1)
         # random_state is guaranteed by decorator
-        _F[jitter] *= (1 + alpha * (random_state.random((jitter.sum(), n_var)) - 0.5))
+        _F[jitter] *= 1 + alpha * (random_state.random((jitter.sum(), n_var)) - 0.5)
 
         # add the difference to the vector
         delta += _F * (X[i] - X[i + 1])
@@ -72,18 +56,20 @@ def de_differential(X, F, jitter, alpha=0.001, random_state=None):
 # Variant
 # =========================================================================================================
 
-class Variant(InfillCriterion):
 
-    def __init__(self,
-                 selection="best",
-                 n_diffs=1,
-                 F=0.5,
-                 crossover="bin",
-                 CR=0.2,
-                 jitter=False,
-                 prob_mut=0.1,
-                 control=EvolutionaryParameterControl,
-                 **kwargs):
+class Variant(InfillCriterion):
+    def __init__(
+        self,
+        selection="best",
+        n_diffs=1,
+        F=0.5,
+        crossover="bin",
+        CR=0.2,
+        jitter=False,
+        prob_mut=0.1,
+        control=EvolutionaryParameterControl,
+        **kwargs,
+    ):
 
         super().__init__(**kwargs)
         self.selection = Choice(selection, options=["rand", "best"], all=["rand", "best", "target-to-best"])
@@ -124,7 +110,6 @@ class Variant(InfillCriterion):
 
         # for each type defined by the type and number of differentials
         for (sel_type, n_diffs), targets in H.items():
-
             # the number of offsprings created in this run
             n_matings, n_parents = len(targets), 1 + 2 * n_diffs
 
@@ -133,17 +118,37 @@ class Variant(InfillCriterion):
 
             itself = np.array(targets)[:, None]
 
-            best = lambda: random_state.choice(np.where(pop.get("rank") == 0)[0], replace=True, size=n_matings)
+            best = lambda: random_state.choice(  # noqa: E731
+                np.where(pop.get("rank") == 0)[0], replace=True, size=n_matings
+            )
 
             if sel_type == "rand":
-                fast_fill_random(P, len(pop), columns=range(n_parents), Xp=itself, random_state=random_state)
+                fast_fill_random(
+                    P,
+                    len(pop),
+                    columns=range(n_parents),
+                    Xp=itself,
+                    random_state=random_state,
+                )
             elif sel_type == "best":
                 P[:, 0] = best()
-                fast_fill_random(P, len(pop), columns=range(1, n_parents), Xp=itself, random_state=random_state)
+                fast_fill_random(
+                    P,
+                    len(pop),
+                    columns=range(1, n_parents),
+                    Xp=itself,
+                    random_state=random_state,
+                )
             elif sel_type == "target-to-best":
                 P[:, 0] = targets
                 P[:, 1] = best()
-                fast_fill_random(P, len(pop), columns=range(2, n_parents), Xp=itself, random_state=random_state)
+                fast_fill_random(
+                    P,
+                    len(pop),
+                    columns=range(2, n_parents),
+                    Xp=itself,
+                    random_state=random_state,
+                )
             else:
                 raise Exception("Unknown selection method.")
 
@@ -165,17 +170,28 @@ class Variant(InfillCriterion):
 
         crossover = get(self.crossover, size=n_offsprings)
         for name, K in where_is_what(crossover).items():
-
             _target = X[K]
             _donor = donor[K]
             _CR = CR[K]
 
             if name == "bin":
-                M = mut_binomial(len(K), problem.n_var, _CR, at_least_once=True, random_state=random_state)
+                M = mut_binomial(
+                    len(K),
+                    problem.n_var,
+                    _CR,
+                    at_least_once=True,
+                    random_state=random_state,
+                )
                 _trial = np.copy(_target)
                 _trial[M] = _donor[M]
             elif name == "exp":
-                M = mut_exp(len(K), problem.n_var, _CR, at_least_once=True, random_state=random_state)
+                M = mut_exp(
+                    len(K),
+                    problem.n_var,
+                    _CR,
+                    at_least_once=True,
+                    random_state=random_state,
+                )
                 _trial = np.copy(_target)
                 _trial[M] = _donor[M]
             elif name == "line":
@@ -210,15 +226,15 @@ class Variant(InfillCriterion):
 
 
 class DE(GeneticAlgorithm):
-
-    def __init__(self,
-                 pop_size=100,
-                 n_offsprings=None,
-                 sampling=FloatRandomSampling(),
-                 variant="DE/best/1/bin",
-                 output=SingleObjectiveOutput(),
-                 **kwargs
-                 ):
+    def __init__(
+        self,
+        pop_size=100,
+        n_offsprings=None,
+        sampling=FloatRandomSampling(),
+        variant="DE/best/1/bin",
+        output=SingleObjectiveOutput(),
+        **kwargs,
+    ):
 
         if variant is None:
             if "control" not in kwargs:
@@ -230,18 +246,25 @@ class DE(GeneticAlgorithm):
                 _, selection, n_diffs, crossover = variant.split("/")
                 if "control" not in kwargs:
                     kwargs["control"] = NoParameterControl
-                variant = Variant(selection=selection, n_diffs=int(n_diffs), crossover=crossover, **kwargs)
-            except:
+                variant = Variant(
+                    selection=selection,
+                    n_diffs=int(n_diffs),
+                    crossover=crossover,
+                    **kwargs,
+                )
+            except:  # noqa: E722
                 raise Exception("Please provide a valid variant: DE/<selection>/<n_diffs>/<crossover>")
 
-        super().__init__(pop_size=pop_size,
-                         n_offsprings=n_offsprings,
-                         sampling=sampling,
-                         mating=variant,
-                         survival=None,
-                         output=output,
-                         eliminate_duplicates=False,
-                         **kwargs)
+        super().__init__(
+            pop_size=pop_size,
+            n_offsprings=n_offsprings,
+            sampling=sampling,
+            mating=variant,
+            survival=None,
+            output=output,
+            eliminate_duplicates=False,
+            **kwargs,
+        )
 
         self.termination = DefaultSingleObjectiveTermination()
 
@@ -249,14 +272,20 @@ class DE(GeneticAlgorithm):
         FitnessSurvival().do(self.problem, self.pop, return_indices=True)
 
     def _infill(self):
-        infills = self.mating.do(self.problem, self.pop, self.n_offsprings, algorithm=self, random_state=self.random_state)
+        infills = self.mating.do(
+            self.problem,
+            self.pop,
+            self.n_offsprings,
+            algorithm=self,
+            random_state=self.random_state,
+        )
 
         # tag each individual with an index - if a steady state version is executed
         index = np.arange(len(infills))
 
         # if number of offsprings is set lower than pop_size - randomly select
         if self.n_offsprings < self.pop_size:
-            index = self.random_state.permutation(len(infills))[:self.n_offsprings]
+            index = self.random_state.permutation(len(infills))[: self.n_offsprings]
             infills = infills[index]
 
         infills.set("index", index)
@@ -267,7 +296,7 @@ class DE(GeneticAlgorithm):
         assert infills is not None, "This algorithms uses the AskAndTell interface thus infills must to be provided."
 
         # get the indices where each offspring is originating from
-        I = infills.get("index")
+        I = infills.get("index")  # noqa: E741
 
         # replace the individuals with the corresponding parents from the mating
         self.pop[I] = ImprovementReplacement().do(self.problem, self.pop[I], infills)

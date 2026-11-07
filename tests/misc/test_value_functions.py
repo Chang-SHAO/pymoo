@@ -3,6 +3,9 @@ import pytest
 from pymoo.util import value_functions as mvf
 import numpy as np
 
+# Value-function fitting is heavy — excluded from the `pyclawd test fast` smoke tier.
+pytestmark = pytest.mark.slow
+
 
 ## ----------------------- Constructor test ----------------------
 # It should take in a set of PO points, and then return a function. 
@@ -37,8 +40,8 @@ def test_ranking(P, rankings, output):
     ## Test whether the solutions are ranked by ranking 
     P_from_prob = vf_prob.P
 
-    # Check the solutions 
-    assert np.all(output == P_from_prob)
+    # Check the solutions
+    np.testing.assert_array_equal(output, P_from_prob)
    
 
 ## TODO test the constructor with partial ordering 
@@ -78,7 +81,7 @@ def test_obj(x, obj):
     result = mvf._obj_func(x)
     
     # Test whether or not the objective function simply negates the epsilon term of x (last element)
-    assert np.all(obj == result)
+    np.testing.assert_array_equal(obj, result)
 
 
 ## ------------- Test the inequality constraint for linear function ---------------
@@ -229,7 +232,7 @@ test_eq_constr_poly_io = [
 @pytest.mark.parametrize('x, expected_eq_con', test_eq_constr_poly_io)
 def test_eq_constr_poly(x, expected_eq_con):
 
-    constraints =  mvf._eq_constr_poly(x)
+    constraints =  mvf._eq_constr_poly(x, 2)
 
     assert np.all(np.isclose(expected_eq_con, constraints))
 

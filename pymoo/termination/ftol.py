@@ -1,7 +1,9 @@
+"""Termination criteria based on function value tolerance."""
+
 import numpy as np
 
 from pymoo.indicators.hv import Hypervolume
-from pymoo.indicators.igd import IGD
+from pymoo.util.misc import igd
 from pymoo.util.normalization import normalize
 from pymoo.termination.delta import DeltaToleranceTermination
 
@@ -15,7 +17,6 @@ def calc_delta_norm(a, b, norm):
 
 
 class SingleObjectiveSpaceTermination(DeltaToleranceTermination):
-
     def __init__(self, tol=1e-6, only_feas=True, **kwargs) -> None:
         super().__init__(tol, **kwargs)
         self.only_feas = only_feas
@@ -40,7 +41,6 @@ class SingleObjectiveSpaceTermination(DeltaToleranceTermination):
 
 
 class MultiObjectiveSpaceTermination(DeltaToleranceTermination):
-
     def __init__(self, tol=0.0025, only_feas=True, **kwargs):
         super().__init__(tol, **kwargs)
         self.delta_ideal = None
@@ -83,22 +83,20 @@ class MultiObjectiveSpaceTermination(DeltaToleranceTermination):
         p_N = normalize(p_F, c_ideal, c_nadir)
 
         # calculate IGD from one to another
-        delta_f = IGD(c_N).do(p_N)
+        delta_f = igd(p_N, c_N)
 
         # store the delta values to the object
-        self.delta_ideal, self.delta_nadir, self.delta_f = delta_ideal, delta_nadir, delta_f
+        self.delta_ideal, self.delta_nadir, self.delta_f = (
+            delta_ideal,
+            delta_nadir,
+            delta_f,
+        )
 
         return max(delta_ideal, delta_nadir, delta_f)
 
 
 class MultiObjectiveSpaceTerminationWithRenormalization(MultiObjectiveSpaceTermination):
-
-    def __init__(self,
-                 n=30,
-                 all_to_current=False,
-                 sliding_window=True,
-                 indicator="igd",
-                 **kwargs) -> None:
+    def __init__(self, n=30, all_to_current=False, sliding_window=True, indicator="igd", **kwargs) -> None:
 
         super().__init__(**kwargs)
         self.n = n
@@ -112,7 +110,7 @@ class MultiObjectiveSpaceTerminationWithRenormalization(MultiObjectiveSpaceTermi
         ret = super()._metric(data)
 
         if not self.sliding_window:
-            data = self.data[-self.metric_window_size:]
+            data = self.data[-self.metric_window_size :]
 
         # get necessary data from the current population
         current = data[-1]
@@ -123,15 +121,14 @@ class MultiObjectiveSpaceTerminationWithRenormalization(MultiObjectiveSpaceTermi
 
         # check if the movement of all points is significant
         if self.all_to_current:
-
             c_N = normalize(c_F, c_ideal, c_nadir)
             if self.indicator == "igd":
-                delta_f = [IGD(c_N).do(N[k]) for k in range(len(N))]
+                delta_f = [igd(N[k], c_N) for k in range(len(N))]
             elif self.indicator == "hv":
                 hv = Hypervolume(ref_point=np.ones(c_F.shape[1]))
                 delta_f = [hv.do(N[k]) for k in range(len(N))]
         else:
-            delta_f = [IGD(N[k + 1]).do(N[k]) for k in range(len(N) - 1)]
+            delta_f = [igd(N[k], N[k + 1]) for k in range(len(N) - 1)]
 
         ret["delta_f"] = delta_f
 

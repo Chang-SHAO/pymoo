@@ -1,3 +1,5 @@
+"""Replacement strategy operators."""
+
 import numpy as np
 
 from pymoo.core.duplicate import DefaultDuplicateElimination
@@ -21,7 +23,6 @@ def is_better(_new, _old, eps=0.0):
 
 
 class ReplacementSurvival(Survival):
-
     def do(self, problem, pop, off, return_indices=False, inplace=False, **kwargs):
 
         # this makes it usable as a traditional survival
@@ -39,7 +40,7 @@ class ReplacementSurvival(Survival):
         pop = Population.create(pop) if isinstance(pop, Individual) else pop
         off = Population.create(off) if isinstance(off, Individual) else off
 
-        I = self._do(problem, pop, off, **kwargs)
+        I = self._do(problem, pop, off, **kwargs)  # noqa: E741
 
         if return_indices:
             return I
@@ -54,7 +55,6 @@ class ReplacementSurvival(Survival):
 
 
 class ImprovementReplacement(ReplacementSurvival):
-
     def _do(self, problem, pop, off, **kwargs):
 
         ret = np.full((len(pop), 1), False)
@@ -63,7 +63,6 @@ class ImprovementReplacement(ReplacementSurvival):
         off_F, off_CV, off_feas = off.get("F", "CV", "FEAS")
 
         if problem.has_constraints() > 0:
-
             # 1) Both infeasible and constraints have been improved
             ret[(~pop_feas & ~off_feas) & (off_CV < pop_CV)] = True
 

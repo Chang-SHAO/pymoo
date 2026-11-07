@@ -48,8 +48,8 @@ more features related to multi-objective optimization such as visualization and 
 
 
 Please note that some modules can be compiled to speed up computations (optional). The command
-above attempts is made to compile the modules; however, if unsuccessful, the
-pure python version is installed. More information are available in our 
+above attempts to compile the modules; however, if unsuccessful, the
+pure python version is installed. More information is available in our
 :ref:`Installation Guide <installation>`.
 
 
@@ -134,9 +134,9 @@ it meets the industry's current needs.
 
 Moreover, any kind of **contribution** is more than welcome:
 
-.. |star| image:: https://github.com/anyoptimization/pymoo-data/blob/main/docs/images/star.png
-  :height: 25
-  :target: https://github.com/anyoptimization/pymoo
+.. |star| raw:: html
+
+   <a href="https://github.com/anyoptimization/pymoo" style="text-decoration: none;">⭐</a>
 
 .. raw:: html
 

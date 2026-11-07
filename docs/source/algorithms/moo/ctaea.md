@@ -13,6 +13,16 @@ jupytext:
 .. _nb_ctaea:
 ```
 
+.. meta::
+   :description: An implementation of C-TAEA (Constrained Two-Archive Evolutionary Algorithm), a multi-objective optimization algorithm that maintains a convergence-oriented and a diversity-oriented archive to solve constrained multi-objective problems.
+
++++
+
+.. meta::
+   :keywords: C-TAEA, CTAEA, Constrained Two-Archive Evolutionary Algorithm, Constrained Multi-objective Optimization, Multi-objective Optimization, Python
+
++++
+
 # C-TAEA
 
 
@@ -37,7 +47,7 @@ algorithm = CTAEA(ref_dirs=ref_dirs)
 # execute the optimization
 res = minimize(problem,
                algorithm,
-               ('n_gen', 600),
+               ('n_gen', 250),
                seed=1,
                verbose=False
                )
@@ -55,7 +65,7 @@ algorithm = CTAEA(ref_dirs=ref_dirs)
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 600),
+               ('n_gen', 250),
                seed=1
                )
 
@@ -71,4 +81,8 @@ Scatter().add(res.F, facecolor="none", edgecolor="red").show()
     :noindex:
 ```
 
-Python implementation by [cyrilpic](https://github.com/cyrilpic) based on the [original C code](https://web.archive.org/web/20200916105021/https://cola-laboratory.github.io/docs/publications).
+## Acknowledgement
+
+The C-TAEA implementation in pymoo was contributed by [cyrilpic](https://github.com/cyrilpic), based on the [original C code](https://web.archive.org/web/20200916105021/https://cola-laboratory.github.io/docs/publications).
+
+*Thank you for the contribution — pymoo grows through community contributions like this one.*

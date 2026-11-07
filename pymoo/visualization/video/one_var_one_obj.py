@@ -1,19 +1,24 @@
-from pymoo.visualization.matplotlib import plt
+"""Animation callback for one-variable one-objective optimization problems."""
+
 import numpy as np
 
+from pymoo.visualization.matplotlib import plt
 from pymoo.visualization.video.callback_video import AnimationCallback
 
 
 class OneVariableOneObjectiveVisualization(AnimationCallback):
+    """Animation callback for one-variable one-objective visualization."""
 
-    def __init__(self,
-                 n_samples_for_surface=10000,
-                 **kwargs):
+    def __init__(
+        self,
+        n_samples_for_surface: int = 10000,
+        **kwargs,  # noqa: ANN001
+    ) -> None:
         super().__init__(**kwargs)
         self.last_pop = None
         self.n_samples_for_surface = n_samples_for_surface
 
-    def do(self, problem, algorithm):
+    def do(self, problem, algorithm):  # noqa: ANN001, ANN201
 
         # check whether the visualization can be done or not - throw exception or simply do nothing
         if problem.n_var != 1 or problem.n_obj != 1:
@@ -52,6 +57,3 @@ class OneVariableOneObjectiveVisualization(AnimationCallback):
 
         # store the current population as the last
         self.last_pop = set(pop)
-
-
-

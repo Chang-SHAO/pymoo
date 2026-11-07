@@ -30,6 +30,26 @@ def test_project_on_manifold_convex():
     np.testing.assert_almost_equal(0.25, projected_point[0])
 
 
+def test_project_on_manifold_origin_does_not_crash():
+    # A normalized front point at the origin (all objectives equal the ideal) has
+    # no positive components, so the p-norm projection distance is 0. It must not
+    # raise ZeroDivisionError — regression: this crashed AGEMOEA2 on ZDT2.
+    out = project_on_manifold(np.zeros(2), 2.0)
+    assert np.all(np.isfinite(out))
+
+    out = project_on_manifold(np.array([-0.1, 0.0]), 2.0)
+    assert np.all(np.isfinite(out))
+
+
+def test_pairwise_distances_with_degenerate_point():
+    # A front that contains an origin point (can arise after normalization) must
+    # produce a finite distance matrix instead of dividing by zero.
+    survival = AGEMOEA2Survival()
+    front = np.array([[1.0, 0.0], [0.0, 0.0], [0.0, 1.0]])
+    matrix = survival.pairwise_distances(front, 2.0)
+    assert np.all(np.isfinite(matrix))
+
+
 def test_compute_distance_p1():
     survival = AGEMOEA2Survival()
     p = 1

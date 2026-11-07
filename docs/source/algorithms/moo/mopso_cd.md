@@ -81,7 +81,7 @@ algorithm = MOPSO_CD(
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 200),
+               ('n_gen', 80),
                seed=1,
                verbose=False)
 
@@ -107,7 +107,7 @@ problem = get_problem("zdt2")
 
 # Customized MOPSO-CD with different parameters
 algorithm = MOPSO_CD(
-    pop_size=150,           # Larger population for better diversity
+    pop_size=100,           # Larger population for better diversity
     w=0.729844,            # Standard PSO inertia weight
     c1=1.49618,            # Cognitive parameter
     c2=1.49618,            # Social parameter
@@ -118,7 +118,7 @@ algorithm = MOPSO_CD(
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 300),
+               ('n_gen', 120),
                seed=1,
                verbose=False)
 
@@ -161,6 +161,8 @@ The algorithm is based on extensions of traditional MOPSO with crowding distance
 
 +++
 
-### Implementation
+### Acknowledgement
 
-This algorithm has been implemented by [Gideon Oludeyi](https://github.com/gideonoludeyi) and extends traditional MOPSO with crowding distance mechanisms for leader selection and archive management. The implementation is particularly well-suited for multi-objective reinforcement learning problems where maintaining diversity in the objective space is crucial for finding well-distributed trade-off solutions. 
+The MOPSO-CD implementation in pymoo was contributed by [Rasa Khosrowshahi](https://github.com/rkhosrowshahi) and [Gideon Oludeyi](https://github.com/gideonoludeyi), extending traditional MOPSO with a crowding-distance mechanism for leader selection and archive management.
+
+*Thank you for the contribution — pymoo grows through community contributions like this one.*

@@ -1,5 +1,6 @@
+"""Mixed variable support for evolutionary algorithms."""
+
 import math
-from copy import deepcopy
 
 import numpy as np
 
@@ -11,7 +12,7 @@ from pymoo.core.infill import InfillCriterion
 from pymoo.core.population import Population
 from pymoo.core.problem import Problem
 from pymoo.core.sampling import Sampling
-from pymoo.core.variable import Choice, Real, Integer, Binary, BoundedVariable
+from pymoo.core.variable import Choice, Real, Integer, Binary
 from pymoo.operators.crossover.sbx import SBX
 from pymoo.operators.crossover.ux import UX
 from pymoo.operators.mutation.bitflip import BFM
@@ -23,15 +24,18 @@ from pymoo.util.display.single import SingleObjectiveOutput
 
 
 class MixedVariableMating(InfillCriterion):
+    """Mating strategy for mixed-variable problems."""
 
-    def __init__(self,
-                 selection=RandomSelection(),
-                 crossover=None,
-                 mutation=None,
-                 repair=None,
-                 eliminate_duplicates=True,
-                 n_max_iterations=100,
-                 **kwargs):
+    def __init__(
+        self,
+        selection=RandomSelection(),
+        crossover=None,
+        mutation=None,
+        repair=None,
+        eliminate_duplicates=True,
+        n_max_iterations=100,
+        **kwargs,
+    ) -> None:
 
         super().__init__(repair, eliminate_duplicates, n_max_iterations, **kwargs)
 
@@ -87,16 +91,29 @@ class MixedVariableMating(InfillCriterion):
 
         if not parents:
             n_select = math.ceil(n_offsprings / XOVER_N_OFFSPRINGS)
-            pop = self.selection(problem, pop, n_select, XOVER_N_PARENTS, random_state=random_state, **kwargs)
+            pop = self.selection(
+                problem,
+                pop,
+                n_select,
+                XOVER_N_PARENTS,
+                random_state=random_state,
+                **kwargs,
+            )
 
         for clazz, list_of_vars in recomb:
-
             crossover = self.crossover[clazz]
             assert crossover.n_parents == XOVER_N_PARENTS and crossover.n_offsprings == XOVER_N_OFFSPRINGS
 
             _parents = [
-                [Individual(X=np.array([parent.X[var] for var in list_of_vars], dtype="O" if clazz is Choice else None)) 
-                  for parent in parents] 
+                [
+                    Individual(
+                        X=np.array(
+                            [parent.X[var] for var in list_of_vars],
+                            dtype="O" if clazz is Choice else None,
+                        )
+                    )
+                    for parent in parents
+                ]
                 for parents in pop
             ]
 
@@ -118,6 +135,7 @@ class MixedVariableMating(InfillCriterion):
 
 
 class MixedVariableSampling(Sampling):
+    """Sampling strategy for mixed-variable problems."""
 
     def _do(self, problem, n_samples, random_state=None, **kwargs):
         V = {name: var.sample(n_samples, random_state=random_state) for name, var in problem.vars.items()}
@@ -130,6 +148,7 @@ class MixedVariableSampling(Sampling):
 
 
 class MixedVariableDuplicateElimination(ElementwiseDuplicateElimination):
+    """Duplicate elimination for mixed-variable problems."""
 
     def is_equal(self, a, b):
         a, b = a.X, b.X
@@ -140,6 +159,14 @@ class MixedVariableDuplicateElimination(ElementwiseDuplicateElimination):
 
 
 def groups_of_vars(vars):
+    """Group variables by their type.
+
+    Args:
+        vars: Dictionary of variables.
+
+    Returns:
+        Dictionary mapping variable types to lists of (name, var) tuples.
+    """
     ret = {}
     for name, var in vars.items():
         if var.__class__ not in ret:
@@ -151,15 +178,26 @@ def groups_of_vars(vars):
 
 
 class MixedVariableGA(GeneticAlgorithm):
+    """Genetic algorithm for mixed-variable optimization problems."""
 
-    def __init__(self,
-                 pop_size=50,
-                 n_offsprings=None,
-                 output=SingleObjectiveOutput(),
-                 sampling=MixedVariableSampling(),
-                 mating=MixedVariableMating(eliminate_duplicates=MixedVariableDuplicateElimination()),
-                 eliminate_duplicates=MixedVariableDuplicateElimination(),
-                 survival=FitnessSurvival(),
-                 **kwargs):
-        super().__init__(pop_size=pop_size, n_offsprings=n_offsprings, sampling=sampling, mating=mating,
-                         eliminate_duplicates=eliminate_duplicates, output=output, survival=survival, **kwargs)
+    def __init__(
+        self,
+        pop_size=50,
+        n_offsprings=None,
+        output=SingleObjectiveOutput(),
+        sampling=MixedVariableSampling(),
+        mating=MixedVariableMating(eliminate_duplicates=MixedVariableDuplicateElimination()),
+        eliminate_duplicates=MixedVariableDuplicateElimination(),
+        survival=FitnessSurvival(),
+        **kwargs,
+    ):
+        super().__init__(
+            pop_size=pop_size,
+            n_offsprings=n_offsprings,
+            sampling=sampling,
+            mating=mating,
+            eliminate_duplicates=eliminate_duplicates,
+            output=output,
+            survival=survival,
+            **kwargs,
+        )

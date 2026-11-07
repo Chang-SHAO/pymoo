@@ -1,3 +1,5 @@
+"""Adaptive control of operator parameters — sample or evolve operator hyperparameters during a run."""
+
 import math
 from abc import abstractmethod
 
@@ -21,7 +23,6 @@ from pymoo.util import default_random_state
 
 
 class ParameterControl:
-
     def __init__(self, obj) -> None:
         super().__init__()
 
@@ -50,13 +51,13 @@ class ParameterControl:
 
     def advance(self, infills=None):
         for k, v in self.params.items():
-            assert len(v.get()) == len(
-                infills), "Make sure that the infills and parameters asked for have the same size."
+            assert len(v.get()) == len(infills), (
+                "Make sure that the infills and parameters asked for have the same size."
+            )
             infills.set(k, v.get())
 
 
 class NoParameterControl(ParameterControl):
-
     def __init__(self, _) -> None:
         super().__init__(None)
 
@@ -65,13 +66,11 @@ class NoParameterControl(ParameterControl):
 
 
 class RandomParameterControl(ParameterControl):
-
     def _do(self, N, random_state=None):
         return {key: value.sample(N, random_state=random_state) for key, value in self.params.items()}
 
 
 class EvolutionaryParameterControl(ParameterControl):
-
     def __init__(self, obj) -> None:
         super().__init__(obj)
         self.eps = 0.05
@@ -82,7 +81,7 @@ class EvolutionaryParameterControl(ParameterControl):
 
         # make sure that for each parameter a value exists - if not simply set it randomly
         for name, param in params.items():
-            is_none = np.where(pop.get(name) == None)[0]
+            is_none = np.where(pop.get(name) == None)[0]  # noqa: E711
             if len(is_none) > 0:
                 pop[is_none].set(name, param.sample(len(is_none), random_state=random_state))
 
@@ -105,7 +104,7 @@ class EvolutionaryParameterControl(ParameterControl):
         mating = MixedVariableMating(
             crossover=crossover,
             mutation=mutation,
-            eliminate_duplicates=NoDuplicateElimination()
+            eliminate_duplicates=NoDuplicateElimination(),
         )
 
         problem = Problem(vars=params)
@@ -122,7 +121,6 @@ class EvolutionaryParameterControl(ParameterControl):
 
 
 class AgeBasedTournamentSelection(TournamentSelection):
-
     def __init__(self, pressure=2):
         super().__init__(age_binary_tournament, pressure)
 
@@ -134,24 +132,26 @@ def age_binary_tournament(pop, P, **kwargs):
         raise ValueError("Only implemented for binary tournament!")
 
     S = np.full(n_tournaments, np.nan)
-    random_state = kwargs.get('random_state', None)
+    random_state = kwargs.get("random_state", None)
 
     for i in range(n_tournaments):
         a, b = P[i, 0], P[i, 1]
         a_gen, b_gen = pop[a].get("n_gen"), pop[b].get("n_gen")
-        S[i] = compare(a, a_gen, b, b_gen, method='larger_is_better', return_random_if_equal=True, random_state=random_state)
+        S[i] = compare(
+            a,
+            a_gen,
+            b,
+            b_gen,
+            method="larger_is_better",
+            return_random_if_equal=True,
+            random_state=random_state,
+        )
 
     return S[:, None].astype(int, copy=False)
 
 
 class ParameterControlMating(InfillCriterion):
-
-    def __init__(self,
-                 selection,
-                 crossover,
-                 mutation,
-                 control=NoParameterControl,
-                 **kwargs):
+    def __init__(self, selection, crossover, mutation, control=NoParameterControl, **kwargs):
         super().__init__(**kwargs)
         self.selection = selection
         self.crossover = crossover
@@ -170,7 +170,6 @@ class ParameterControlMating(InfillCriterion):
 
         # if the parents for the mating are not provided directly - usually selection will be used
         if parents is None:
-
             # select the parents for the mating - just an index array
             parents = self.selection.do(problem, pop, n_matings, n_parents=self.crossover.n_parents, **kwargs)
 

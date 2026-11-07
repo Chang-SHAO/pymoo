@@ -1,3 +1,5 @@
+"""Population initialization using sampling, repair, and duplicate elimination."""
+
 import numpy as np
 
 from pymoo.core.duplicate import NoDuplicateElimination
@@ -8,11 +10,14 @@ from pymoo.util.misc import at_least_2d_array
 
 
 class Initialization:
+    """Initialize a population by sampling and applying repair and duplicate elimination."""
 
-    def __init__(self,
-                 sampling,
-                 repair=None,
-                 eliminate_duplicates=None) -> None:
+    def __init__(
+        self,
+        sampling,
+        repair=None,
+        eliminate_duplicates=None,
+    ) -> None:
 
         super().__init__()
         self.sampling = sampling
@@ -20,7 +25,7 @@ class Initialization:
         self.repair = repair if repair is not None else NoRepair()
 
     @default_random_state
-    def do(self, problem, n_samples, random_state=None, **kwargs):
+    def do(self, problem, n_samples, random_state=None, **kwargs) -> "Population":
 
         # provide a whole population object - (individuals might be already evaluated)
         if isinstance(self.sampling, Population):

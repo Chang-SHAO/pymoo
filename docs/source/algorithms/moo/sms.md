@@ -13,6 +13,16 @@ jupytext:
 .. _nb_sms:
 ```
 
+.. meta::
+   :description: An implementation of SMS-EMOA (S-Metric Selection Evolutionary Multi-objective Algorithm), which uses the hypervolume (S-metric) contribution as the selection criterion for multi-objective optimization.
+
++++
+
+.. meta::
+   :keywords: SMS-EMOA, SMSEMOA, S-Metric Selection, Hypervolume, Multi-objective Optimization, Python
+
++++
+
 # SMS-EMOA: Multiobjective selection based on dominated hypervolume
 
 +++
@@ -35,7 +45,7 @@ SMS-EMOA aims to maximize the dominated hypervolume within the optimization proc
 .. admonition:: Info
     :class: myOwnStyle
 
-    Note that the hypervolume metric becomes computationally very expensive for more than three objectives.
+    Exact hypervolume contributions are used for up to 5 objectives (via moocore). For more than 5 objectives, an approximation is used automatically.
 ```
 
 ### Example

@@ -1,20 +1,25 @@
-from pymoo.visualization.matplotlib import plt
+"""Animation callback for two-variable one-objective optimization problems."""
+
 import numpy as np
 
+from pymoo.visualization.matplotlib import plt
 from pymoo.visualization.fitness_landscape import FitnessLandscape
 from pymoo.visualization.video.callback_video import AnimationCallback
 
 
 class TwoVariablesOneObjectiveVisualization(AnimationCallback):
+    """Animation callback for two-variable one-objective visualization."""
 
-    def __init__(self,
-                 n_samples_for_surface=10000,
-                 **kwargs):
+    def __init__(
+        self,
+        n_samples_for_surface: int = 10000,
+        **kwargs,  # noqa: ANN001
+    ) -> None:
         super().__init__(**kwargs)
         self.last_pop = None
         self.n_samples_for_surface = n_samples_for_surface
 
-    def do(self, problem, algorithm):
+    def do(self, problem, algorithm):  # noqa: ANN001, ANN201
 
         # check whether the visualization can be done or not - throw exception or simply do nothing
         if problem.n_var != 2 or problem.n_obj != 1:
@@ -30,7 +35,15 @@ class TwoVariablesOneObjectiveVisualization(AnimationCallback):
         pop = algorithm.pop
 
         X, F, CV = pop.get("X", "F", "CV")
-        plt.scatter(X[:, 0], X[:, 1], facecolor="none", edgecolors="black", marker="o", s=50, label="Solutions")
+        plt.scatter(
+            X[:, 0],
+            X[:, 1],
+            facecolor="none",
+            edgecolors="black",
+            marker="o",
+            s=50,
+            label="Solutions",
+        )
 
         if hasattr(algorithm, "off") and algorithm.off is not None:
             X, F, CV = algorithm.off.get("X", "F", "CV")

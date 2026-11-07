@@ -28,6 +28,7 @@ __pycache__/
  **/*.ipynb_checkpoints/
 
 
+
 # files which are in pytest
 tests/!archive/*
 tests/scratch*
@@ -39,6 +40,12 @@ pymoo/cache/*
 pymoo/data
 pymoo/docs/build
 pymoo/docs/nbconvert
+# Claude Code: share AGENTS.md, CLAUDE.md, .claude/{commands,docs,skills}; keep only personal settings out
+.claude/settings.local.json
+.kiro
+
+# Docs: executed notebooks and their cache never go in git (only .md sources do)
+.jupyter_cache/
 
 
 benchmark/runs/*
@@ -46,8 +53,9 @@ benchmark/runs/*
 # any video or other output file
 *.mp4
 
-# pycharm folder
+
 .idea/
+.kiro/
 
 
 # Distribution / packaging
@@ -146,3 +154,10 @@ ENV/
 
 # Package manager lock files
 uv.lock
+
+# pixi environments
+.pixi
+*.egg-info
+
+# felix-loop bookkeeping (not committed)
+.claude/loop/

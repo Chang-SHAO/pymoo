@@ -1,1 +1,3 @@
-__version__ = "0.6.1.5"
+"""Version information for pymoo."""
+
+__version__ = "0.6.2"

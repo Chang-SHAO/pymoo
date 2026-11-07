@@ -1,17 +1,9 @@
-"""
-Newton-Raphson-based optimizer (NRBO)
+"""Newton-Raphson-based optimizer (NRBO).
 
--------------------------------- Description -------------------------------
-
-
-
--------------------------------- References --------------------------------
-
-[1]. Sowmya, R., Premkumar, M. & Jangir, P. Newton-Raphson-based optimizer:
-A new population-based metaheuristic algorithm for continuous optimization problems.
-Engineering Applications of Artificial Intelligence 128, 107532 (2024).
-
-----------------------------------------------------------------------------
+References:
+    [1] Sowmya, R., Premkumar, M. & Jangir, P. Newton-Raphson-based optimizer:
+        A new population-based metaheuristic algorithm for continuous optimization
+        problems. Engineering Applications of Artificial Intelligence 128, 107532 (2024).
 """
 
 import numpy as np
@@ -28,7 +20,6 @@ from pymoo.util import default_random_state
 
 
 class FitnessSurvival(Survival):
-
     def __init__(self) -> None:
         super().__init__(filter_infeasible=False)
 
@@ -132,7 +123,6 @@ class NRBO(Algorithm):
         off = []
 
         for i in range(self.pop_size):
-
             # random select r1,r2
             idx = np.arange(self.pop_size)
             idx = np.delete(idx, i)
@@ -187,5 +177,3 @@ class NRBO(Algorithm):
     def _set_optimum(self):
         k = self.pop.get("rank") == 0
         self.opt = self.pop[k]
-
-

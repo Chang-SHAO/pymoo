@@ -1,3 +1,5 @@
+"""Stochastic Ranking Evolutionary Strategy (SRES)."""
+
 import numpy as np
 
 from pymoo.algorithms.soo.nonconvex.es import ES
@@ -8,7 +10,6 @@ from pymoo.functions import load_function
 
 
 class StochasticRankingSurvival(Survival):
-
     def __init__(self, PR):
         super().__init__(filter_infeasible=False)
         self.PR = PR
@@ -20,26 +21,25 @@ class StochasticRankingSurvival(Survival):
         f = F[:, 0]
 
         if not problem.has_constraints():
-            I = f.argsort()
+            I = f.argsort()  # noqa: E741
 
         else:
             phi = calc_cv(pop)
             J = np.arange(len(phi))
-            I = load_function("stochastic_ranking")(f, phi, self.PR, J, random_state=random_state)
+            I = load_function("stochastic_ranking")(  # noqa: E741
+                f, phi, self.PR, J, random_state=random_state
+            )
 
         return pop[I][:n_survive]
 
 
 class SRES(ES):
-
     def __init__(self, PF=0.45, **kwargs):
-        """
-        Stochastic Ranking Evolutionary Strategy (SRES)
+        """Stochastic Ranking Evolutionary Strategy (SRES).
 
-        Parameters
-        ----------
-        PF: float
-            The stochastic ranking weight for choosing a random decision while doing the modified bubble sort.
+        Args:
+            PF: The stochastic ranking weight for bubble sort decisions.
+            **kwargs: Additional strategy parameters.
         """
         super().__init__(survival=StochasticRankingSurvival(PF), **kwargs)
         self.PF = PF

@@ -1,55 +1,36 @@
+"""Parallel coordinate plot visualization."""
+
 import numpy as np
 
-import pymoo.visualization.util
-from pymoo.docs import parse_doc_string
 from pymoo.core.plot import Plot
 from pymoo.util.misc import set_if_none, set_if_none_from_tuples
-from pymoo.visualization.util import parse_bounds, normalize
+from pymoo.visualization.matplotlib import plt
+from pymoo.visualization.util import normalize, parse_bounds
 
 
 class PCP(Plot):
+    """Parallel Coordinate Plot for multi-objective visualization."""
 
-    def __init__(self,
-                 bounds=None,
-                 show_bounds=True,
-                 n_ticks=5,
-                 normalize_each_axis=True,
-                 bbox=False,
-                 **kwargs):
+    def __init__(
+        self,
+        bounds=None,
+        show_bounds=True,
+        n_ticks=5,
+        normalize_each_axis=True,
+        bbox=False,
+        **kwargs,
+    ):
+        """Initialize PCP.
+
+        Args:
+            bounds: Bounds for normalization.
+            show_bounds: Whether the value of the boundaries are shown in the plot.
+            n_ticks: Number of ticks to be shown on each parallel axis.
+            normalize_each_axis: Whether the values should be normalized either by bounds
+                or implicitly.
+            bbox: Whether to use bounding boxes for labels.
+            **kwargs: Additional keyword arguments passed to parent Plot class.
         """
-
-        Parallel Coordinate Plot
-
-
-        Parameters
-        ----------
-
-        bounds : {bounds}
-
-        axis_style : {axis_style}
-
-        labels : {labels}
-
-        n_ticks : int
-            Number of ticks to be shown on each parallel axis.
-
-        show_bounds : bool
-            Whether the value of the boundaries are shown in the plot or not.
-
-        normalize_each_axis : bool
-            Whether the values should be normalized either by bounds or implicitly.
-
-        Other Parameters
-        ----------------
-
-        figsize : {figsize}
-        title : {title}
-        legend : {legend}
-        tight_layout : {tight_layout}
-        cmap : {cmap}
-
-        """
-
         super().__init__(bounds=bounds, **kwargs)
         self.show_bounds = show_bounds
         self.n_ticks = n_ticks
@@ -74,12 +55,11 @@ class PCP(Plot):
 
         # plot for each set the lines
         for k, (F, kwargs) in enumerate(to_plot_norm):
-
             _kwargs = kwargs.copy()
             set_if_none(_kwargs, "color", self.colors[k % len(self.colors)])
 
             for i in range(len(F)):
-                pymoo.visualization.util.plot(np.arange(F.shape[1]), F[i, :], **_kwargs)
+                plt.plot(np.arange(F.shape[1]), F[i, :], **_kwargs)
 
         # Plot the parallel coordinate axes
         for i in range(self.n_dim):
@@ -93,8 +73,8 @@ class PCP(Plot):
                 upper = self.ax.text(i - margin_left, top, self.func_number_to_text(bounds[1][i]))
 
                 if self.bbox:
-                    lower.set_bbox(dict(facecolor='white', alpha=0.8))
-                    upper.set_bbox(dict(facecolor='white', alpha=0.8))
+                    lower.set_bbox(dict(facecolor="white", alpha=0.8))
+                    upper.set_bbox(dict(facecolor="white", alpha=0.8))
 
             if self.n_ticks is not None:
                 n_length = 0.03
@@ -103,10 +83,10 @@ class PCP(Plot):
 
         # if bounds are shown, then move them to the bottom
         if self.show_bounds:
-            self.ax.tick_params(axis='x', which='major', pad=25)
+            self.ax.tick_params(axis="x", which="major", pad=25)
 
-        self.ax.spines['right'].set_visible(False)
-        self.ax.spines['left'].set_visible(False)
+        self.ax.spines["right"].set_visible(False)
+        self.ax.spines["left"].set_visible(False)
 
         self.ax.set_yticklabels([])
         self.ax.set_yticks([])
@@ -116,6 +96,3 @@ class PCP(Plot):
         self.ax.set_xticklabels(self.get_labels())
 
         return self
-
-
-parse_doc_string(PCP.__init__)

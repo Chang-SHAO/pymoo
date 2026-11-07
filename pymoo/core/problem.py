@@ -1,11 +1,13 @@
+"""Base classes for optimization problems."""
+
 from __future__ import annotations
 
+import warnings
 from abc import abstractmethod
 
 import numpy as np
 
 import pymoo.gradient.toolbox as anp
-from pymoo.core.meta import Meta
 from pymoo.util.cache import Cache
 from pymoo.util.misc import at_least_2d_array
 
@@ -18,7 +20,6 @@ class LoopedElementwiseEvaluation:
 
 
 class ElementwiseEvaluationFunction:
-
     def __init__(self, problem, args, kwargs) -> None:
         super().__init__()
         self.problem = problem
@@ -32,52 +33,47 @@ class ElementwiseEvaluationFunction:
 
 
 class Problem:
-    def __init__(self,
-                 n_var=-1,
-                 n_obj=1,
-                 n_ieq_constr=0,
-                 n_eq_constr=0,
-                 xl=None,
-                 xu=None,
-                 vtype=None,
-                 vars=None,
-                 elementwise=False,
-                 elementwise_func=ElementwiseEvaluationFunction,
-                 elementwise_runner=LoopedElementwiseEvaluation(),
-                 requires_kwargs=False,
-                 replace_nan_values_by=None,
-                 exclude_from_serialization=None,
-                 callback=None,
-                 strict=True,
-                 **kwargs):
+    def __init__(
+        self,
+        n_var=-1,
+        n_obj=1,
+        n_ieq_constr=0,
+        n_eq_constr=0,
+        xl=None,
+        xu=None,
+        vtype=None,
+        vars=None,
+        elementwise=False,
+        elementwise_func=ElementwiseEvaluationFunction,
+        elementwise_runner=LoopedElementwiseEvaluation(),
+        requires_kwargs=False,
+        replace_nan_values_by=None,
+        exclude_from_serialization=None,
+        callback=None,
+        strict=True,
+        **kwargs,
+    ):
+        """Initialize a Problem.
 
+        Args:
+            n_var: Number of variables.
+            n_obj: Number of objectives.
+            n_ieq_constr: Number of inequality constraints.
+            n_eq_constr: Number of equality constraints.
+            xl: Lower bounds for variables (float/int/array).
+            xu: Upper bounds for variables (float/int/array).
+            vtype: Variable type hint.
+            vars: Variables in explicit form.
+            elementwise: Whether to use elementwise evaluation.
+            elementwise_func: Function for elementwise evaluation.
+            elementwise_runner: Runner for elementwise evaluation.
+            requires_kwargs: Whether evaluation requires kwargs.
+            replace_nan_values_by: Value to replace NaN with.
+            exclude_from_serialization: Attributes to exclude from serialization.
+            callback: Callback function after each evaluation.
+            strict: Whether to check shapes strictly.
+            **kwargs: Additional keyword arguments.
         """
-
-        Parameters
-        ----------
-        n_var : int
-            Number of Variables
-
-        n_obj : int
-            Number of Objectives
-
-        n_ieq_constr : int
-            Number of Inequality Constraints
-
-        n_eq_constr : int
-            Number of Equality Constraints
-
-        xl : np.array, float, int
-            Lower bounds for the variables. if integer all lower bounds are equal.
-
-        xu : np.array, float, int
-            Upper bounds for the variable. if integer all upper bounds are equal.
-
-        vtype : type
-            The variable type. So far, just used as a type hint.
-
-        """
-
         # number of variable
         self.n_var = n_var
 
@@ -85,7 +81,17 @@ class Problem:
         self.n_obj = n_obj
 
         # number of inequality constraints
-        self.n_ieq_constr = n_ieq_constr if "n_constr" not in kwargs else max(n_ieq_constr, kwargs["n_constr"])
+        if "n_constr" in kwargs:
+            warnings.warn(
+                "Problem(n_constr=...) is deprecated — use n_ieq_constr (inequality) "
+                "or n_eq_constr (equality) constraints. 'n_constr' is mapped to "
+                "n_ieq_constr for now and will be removed in 0.7.0.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            self.n_ieq_constr = max(n_ieq_constr, kwargs["n_constr"])
+        else:
+            self.n_ieq_constr = n_ieq_constr
 
         # number of equality constraints
         self.n_eq_constr = n_eq_constr
@@ -125,7 +131,6 @@ class Problem:
 
         # if it is a problem with an actual number of variables - make sure xl and xu are numpy arrays
         if n_var > 0:
-
             if self.xl is not None:
                 if not isinstance(self.xl, np.ndarray):
                     self.xl = np.ones(n_var) * xl
@@ -136,18 +141,35 @@ class Problem:
                     self.xu = np.ones(n_var) * xu
                 self.xu = self.xu.astype(float)
 
+            # validate bounds once at construction so a common mistake surfaces
+            # here with a clear message instead of as a cryptic error deep in an
+            # operator. Warn now; this becomes a hard ValueError in 0.7.0.
+            if self.xl is not None and self.xu is not None:
+                if self.xl.shape != (n_var,) or self.xu.shape != (n_var,):
+                    warnings.warn(
+                        f"Problem bounds have the wrong length: xl/xu should each have "
+                        f"n_var={n_var} entries, got xl{self.xl.shape}, xu{self.xu.shape}.",
+                        UserWarning,
+                        stacklevel=2,
+                    )
+                else:
+                    bad = np.where(self.xl > self.xu)[0]
+                    if len(bad) > 0:
+                        warnings.warn(
+                            f"Problem bounds invalid: xl > xu at variable index "
+                            f"{bad.tolist()} (xl={self.xl[bad]}, xu={self.xu[bad]}). "
+                            f"Did you swap the lower and upper bounds?",
+                            UserWarning,
+                            stacklevel=2,
+                        )
+
         # this defines if NaN values should be replaced or not
         self.replace_nan_values_by = replace_nan_values_by
 
         # attribute which are excluded from being serialized
         self.exclude_from_serialization = exclude_from_serialization
 
-    def evaluate(self,
-                 X,
-                 *args,
-                 return_values_of=None,
-                 return_as_dictionary=False,
-                 **kwargs):
+    def evaluate(self, X, *args, return_values_of=None, return_as_dictionary=False, **kwargs):
 
         # if the problem does not require any kwargs they are re-initialized
         if not self.requires_kwargs:
@@ -163,7 +185,7 @@ class Problem:
         # make sure the array is at least 2d. store if reshaping was necessary
         if isinstance(X, np.ndarray) and X.dtype != object:
             X, only_single_value = at_least_2d_array(X, extend_as="row", return_if_reshaped=True)
-            assert X.shape[1] == self.n_var, f'Input dimension {X.shape[1]} are not equal to n_var {self.n_var}!'
+            assert X.shape[1] == self.n_var, f"Input dimension {X.shape[1]} are not equal to n_var {self.n_var}!"
         else:
             only_single_value = not (isinstance(X, list) or isinstance(X, np.ndarray))
 
@@ -172,7 +194,6 @@ class Problem:
 
         out = {}
         for k, v in _out.items():
-
             # copy it to a numpy array (it might be one of jax at this point)
             v = np.array(v)
 
@@ -186,7 +207,7 @@ class Problem:
 
             try:
                 out[k] = v.astype(np.float64)
-            except:
+            except:  # noqa: E722
                 out[k] = v
 
         if self.callback is not None:
@@ -230,10 +251,8 @@ class Problem:
 
         # for each evaluation call
         for elem in elems:
-
             # for each key stored for this evaluation
             for k, v in elem.items():
-
                 # if the element does not exist in out yet -> create it
                 if out.get(k, None) is None:
                     out[k] = []
@@ -255,13 +274,10 @@ class Problem:
 
         # for all values that have been set in the user implemented function
         for name, v in out.items():
-
             # only if they have truly been set
             if v is not None:
-
                 # if there is a shape to be expected
                 if name in shape:
-
                     if isinstance(v, list):
                         v = anp.column_stack(v)
 
@@ -269,8 +285,12 @@ class Problem:
                         v = v.reshape(shape[name])
                     except Exception as e:
                         raise Exception(
-                            f"Problem Error: {name} can not be set, expected shape {shape[name]} but provided {v.shape}",
-                            e)
+                            f"Problem Error: {name} can not be set, expected shape "
+                            f"{shape[name]} but provided {v.shape}. Check that n_obj / "
+                            f"n_ieq_constr / n_eq_constr match what _evaluate sets for "
+                            f"'{name}'.",
+                            e,
+                        )
 
                 ret[name] = v
 
@@ -278,6 +298,15 @@ class Problem:
         for name in return_values_of:
             if name not in ret:
                 s = shape.get(name, N)
+                # the objective values are always required — silently returning inf
+                # hides a misdefined _evaluate, so flag it (once).
+                if name == "F":
+                    warnings.warn(
+                        "Problem._evaluate did not set out['F'] (the objective values); "
+                        "returning inf. Make sure _evaluate assigns out['F'].",
+                        UserWarning,
+                        stacklevel=2,
+                    )
                 ret[name] = np.full(s, np.inf)
 
         return ret
@@ -297,7 +326,7 @@ class Problem:
     @Cache
     def pareto_front(self, *args, **kwargs):
         pf = self._calc_pareto_front(*args, **kwargs)
-        pf = at_least_2d_array(pf, extend_as='r')
+        pf = at_least_2d_array(pf, extend_as="r")
         if pf is not None and pf.shape[1] == 2:
             pf = pf[np.argsort(pf[:, 0])]
         return pf
@@ -305,7 +334,7 @@ class Problem:
     @Cache
     def pareto_set(self, *args, **kwargs):
         ps = self._calc_pareto_set(*args, **kwargs)
-        ps = at_least_2d_array(ps, extend_as='r')
+        ps = at_least_2d_array(ps, extend_as="r")
         return ps
 
     @property
@@ -356,7 +385,6 @@ class Problem:
 
 
 class ElementwiseProblem(Problem):
-
     def __init__(self, elementwise=True, **kwargs):
         super().__init__(elementwise=elementwise, **kwargs)
 
@@ -374,59 +402,25 @@ def default_shape(problem, n):
     return DEFAULTS
 
 
-class MetaProblem(Problem, Meta):
+# ===========================================================================
+# Backward compatibility for moved parallelization classes
+# ===========================================================================
+
+
+def __getattr__(name):
+    """Provide backward compatibility for StarmapParallelization import.
+
+    This class was moved from pymoo.core.problem to pymoo.parallelization.
     """
-    A problem wrapper that combines Problem's functionality with Meta's delegation behavior.
-    Inherits from both Problem and Meta to provide transparent proxying with the ability 
-    to override specific methods.
-    """
+    if name == "StarmapParallelization":
+        warnings.warn(
+            "Importing 'StarmapParallelization' from 'pymoo.core.problem' is deprecated. "
+            "Please use 'from pymoo.parallelization import StarmapParallelization' instead. "
+            "This backward compatibility import will be removed in a future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from pymoo.parallelization import StarmapParallelization
 
-    def __init__(self, problem, copy=True, **kwargs):
-        # If the problem is already a Meta object, don't copy to avoid deepcopy issues with nested proxies
-        if isinstance(problem, Meta):
-            copy = False
-            
-        # Initialize Meta first (which initializes wrapt.ObjectProxy)
-        Meta.__init__(self, problem, copy=copy)
-        
-        # Initialize Problem with the wrapped problem's attributes, using getattr with defaults
-        Problem.__init__(self,
-                         n_var=getattr(problem, 'n_var', -1),
-                         n_obj=getattr(problem, 'n_obj', 1),
-                         n_ieq_constr=getattr(problem, 'n_ieq_constr', 0),
-                         n_eq_constr=getattr(problem, 'n_eq_constr', 0),
-                         xl=getattr(problem, 'xl', None),
-                         xu=getattr(problem, 'xu', None),
-                         vtype=getattr(problem, 'vtype', None),
-                         vars=getattr(problem, 'vars', None),
-                         elementwise=getattr(problem, 'elementwise', False),
-                         elementwise_func=getattr(problem, 'elementwise_func', None),
-                         elementwise_runner=getattr(problem, 'elementwise_runner', None),
-                         requires_kwargs=getattr(problem, 'requires_kwargs', False),
-                         replace_nan_values_by=getattr(problem, 'replace_nan_values_by', None),
-                         exclude_from_serialization=getattr(problem, 'exclude_from_serialization', None),
-                         callback=getattr(problem, 'callback', None),
-                         strict=getattr(problem, 'strict', True),
-                         **kwargs)
-
-    def do(self, X, return_values_of, *args, **kwargs):
-        """
-        Override do method to call Problem's do method.
-        This uses Problem's do logic with this object's attributes.
-        """
-        return Problem.do(self, X, return_values_of, *args, **kwargs)
-
-    def evaluate(self, X, *args, **kwargs):
-        """
-        Override evaluate method to call Problem's evaluate method.
-        This uses the Problem's evaluate logic with this object's attributes.
-        """
-        return super().evaluate(X, *args, **kwargs)
-
-    def _calc_pareto_front(self, *args, **kwargs):
-        """Delegate pareto front calculation to wrapped object."""
-        return self.__wrapped__._calc_pareto_front(*args, **kwargs)
-
-    def _calc_pareto_set(self, *args, **kwargs):
-        """Delegate pareto set calculation to wrapped object."""
-        return self.__wrapped__._calc_pareto_set(*args, **kwargs)
+        return StarmapParallelization
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

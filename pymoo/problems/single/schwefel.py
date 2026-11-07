@@ -1,3 +1,5 @@
+"""Schwefel single-objective optimization problem."""
+
 import pymoo.gradient.toolbox as anp
 import numpy as np
 

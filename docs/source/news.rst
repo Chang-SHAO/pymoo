@@ -5,6 +5,16 @@ News
 ==============================================================================
 
 
+**June 27, 2026:** pymoo version **0.6.2** has been released. This release restores CMA-ES compatibility with NumPy 2.x (via ``cma>=3.4.0``), refreshes the documentation with a complete and consistent algorithm overview, and adds internal code-quality improvements (repo-wide linting, whole-package type-checking, and a behavior-regression test suite). (:ref:`Release Notes<version_0_6_2>`)
+
+**November 23, 2025:** pymoo version **0.6.1.6** has been released with visualization fixes, SPEA2 improvements, faster bi-objective non-dominated sorting, and updated documentation with a new Sphinx Book Theme.
+
+**May 26, 2025:** A new pymoo version **0.6.1.5** has been released with further refinements and bug fixes to ensure stability and performance across different environments.
+
+**July 28, 2024:** We are excited to announce pymoo version **0.6.1.3** with significant improvements! This release brings **NumPy 2.0 compatibility**, ensuring pymoo works seamlessly with the latest scientific computing ecosystem. We've also made **Autograd optional** for automatic differentiation, incorporated numerous bug fixes from community pull requests, and improved overall stability. (:ref:`Release Notes<version_0_6_1_3>`)
+
+**December 11, 2022:** Following the major 0.6.0 release, we've published pymoo **0.6.0.1** with important bug fixes and stability improvements to address issues discovered by the community.
+
 **July 11, 2022:** It just happened. The new pymoo (version **0.6.0**) version has been released. Many things happened under the hood; however, the code base has changed quite a bit. The individual class has been reimplemented, and the meta algorithms can now be constructed much simpler. New algorithms have been added (G3PXC, RVEA, SMS-EMOA), and dynamic optimization problems and a simple implementation of D-NSGA-II are available. For more details, please have a look at the changelogs. (:ref:`Release Notes<version_0_6_0>`)
 
 

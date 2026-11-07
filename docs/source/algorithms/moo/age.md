@@ -51,7 +51,7 @@ algorithm = AGEMOEA(pop_size=100)
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 200),
+               ('n_gen', 80),
                seed=1,
                verbose=False)
 
@@ -82,14 +82,14 @@ algorithm = AGEMOEA(pop_size=100,
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 500),
+               ('n_gen', 200),
                seed=1,
                verbose=False)
 
 Scatter().add(res.F, facecolor="none", edgecolor="red").show()
 ```
 
-This algorithm is based on <cite data-cite="agemoea"></cite> and its Matlab implementation in the PlatEMO library. This Python version has been implemented by [BenCrulis](https://github.com/BenCrulis)  
+This algorithm is based on <cite data-cite="agemoea"></cite> and its Matlab implementation in the PlatEMO library.
 
 +++
 
@@ -101,3 +101,11 @@ This algorithm is based on <cite data-cite="agemoea"></cite> and its Matlab impl
 .. autoclass:: pymoo.algorithms.moo.age.AGEMOEA
     :noindex:
 ```
+
++++
+
+### Acknowledgement
+
+The Python implementation of AGE-MOEA in pymoo was contributed by [BenCrulis](https://github.com/BenCrulis), based on the original paper and its Matlab implementation in the PlatEMO library.
+
+*Thank you for the contribution — pymoo grows through community contributions like this one.*

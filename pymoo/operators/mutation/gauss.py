@@ -1,3 +1,5 @@
+"""Gaussian mutation operator implementation."""
+
 import numpy as np
 
 from pymoo.core.mutation import Mutation
@@ -29,7 +31,7 @@ def mut_gauss(X, xl, xu, sigma, prob, random_state=None):
 
     Xp[mut] = random_state.normal(X[mut], sigma * (_xu - _xl))
 
-    Xp = repair_random_init(Xp, X, xl, xu)
+    Xp = repair_random_init(Xp, X, xl, xu, random_state=random_state)
 
     return Xp
 
@@ -40,7 +42,6 @@ def mut_gauss(X, xl, xu, sigma, prob, random_state=None):
 
 
 class GaussianMutation(Mutation):
-
     def __init__(self, sigma=0.1, **kwargs):
         super().__init__(**kwargs)
         self.sigma = Real(sigma, bounds=(0.01, 0.25), strict=(0.0, 1.0))

@@ -13,6 +13,16 @@ jupytext:
 .. _nb_moead:
 ```
 
+.. meta::
+   :description: An implementation of MOEA/D (Multi-Objective Evolutionary Algorithm Based on Decomposition), which decomposes a multi-objective problem into many scalar subproblems solved simultaneously along reference directions.
+
++++
+
+.. meta::
+   :keywords: MOEA/D, MOEAD, Decomposition, Reference Directions, Multi-objective Optimization, Python
+
++++
+
 # MOEA/D
 
 
@@ -37,7 +47,7 @@ algorithm = MOEAD(
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 200),
+               ('n_gen', 100),
                seed=1,
                verbose=False)
 

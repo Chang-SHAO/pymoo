@@ -1,12 +1,14 @@
+"""Automatic differentiation support for optimization problems."""
+
 import numpy as np
 
-from pymoo.core.problem import ElementwiseEvaluationFunction, MetaProblem
+from pymoo.core.meta import Meta
+from pymoo.core.problem import Problem, ElementwiseEvaluationFunction
 from pymoo.gradient import activate, deactivate
 
 
 class ElementwiseEvaluationFunctionWithGradient(ElementwiseEvaluationFunction):
-
-    def __init__(self, problem, backend='autograd', args=(), kwargs={}):
+    def __init__(self, problem, backend="autograd", args=(), kwargs={}):
         super().__init__(problem, args, kwargs)
         self.backend = backend
 
@@ -16,9 +18,11 @@ class ElementwiseEvaluationFunctionWithGradient(ElementwiseEvaluationFunction):
         activate(self.backend)
         if self.backend == "jax":
             from pymoo.gradient.grad_jax import jax_elementwise_value_and_grad
+
             out, grad = jax_elementwise_value_and_grad(f, x)
         elif self.backend == "autograd":
             from pymoo.gradient.grad_autograd import autograd_elementwise_value_and_grad
+
             out, grad = autograd_elementwise_value_and_grad(f, x)
         else:
             raise Exception("Unknown backend %s" % self.backend)
@@ -30,9 +34,8 @@ class ElementwiseEvaluationFunctionWithGradient(ElementwiseEvaluationFunction):
         return out
 
 
-class ElementwiseAutomaticDifferentiation(MetaProblem):
-
-    def __init__(self, problem, backend='autograd', copy=True):
+class ElementwiseAutomaticDifferentiation(Meta, Problem):
+    def __init__(self, problem, backend="autograd", copy=True):
         if not problem.elementwise:
             raise Exception("Elementwise automatic differentiation can only be applied to elementwise problems.")
 
@@ -43,13 +46,12 @@ class ElementwiseAutomaticDifferentiation(MetaProblem):
         self.elementwise_func = self._create_elementwise_func
 
     def _create_elementwise_func(self, problem, args, kwargs):
-        """Create an elementwise function that matches the expected signature"""
+        """Create an elementwise function that matches the expected signature."""
         return ElementwiseEvaluationFunctionWithGradient(self.__object__, self.backend, args, kwargs)
 
 
-class AutomaticDifferentiation(MetaProblem):
-
-    def __init__(self, object, backend='autograd', **kwargs):
+class AutomaticDifferentiation(Meta, Problem):
+    def __init__(self, object, backend="autograd", **kwargs):
         super().__init__(object, **kwargs)
         self.backend = backend
 
@@ -58,7 +60,6 @@ class AutomaticDifferentiation(MetaProblem):
         vals_not_grad = [v for v in return_values_of if not v.startswith("d")]
 
         class F:
-
             def __init__(self, object):
                 self.__object__ = object
 
@@ -70,9 +71,11 @@ class AutomaticDifferentiation(MetaProblem):
         activate(self.backend)
         if self.backend == "jax":
             from pymoo.gradient.grad_jax import jax_vectorized_value_and_grad
+
             out, grad = jax_vectorized_value_and_grad(f, x)
         elif self.backend == "autograd":
             from pymoo.gradient.grad_autograd import autograd_vectorized_value_and_grad
+
             out, grad = autograd_vectorized_value_and_grad(f, x)
         else:
             raise Exception("Unknown backend %s" % self.backend)

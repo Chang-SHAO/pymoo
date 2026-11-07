@@ -13,6 +13,16 @@ jupytext:
 .. _nb_brkga:
 ```
 
+.. meta::
+   :description: An implementation of BRKGA (Biased Random Key Genetic Algorithm), a genetic algorithm that encodes solutions as random keys and biases mating toward elite solutions for single-objective optimization.
+
++++
+
+.. meta::
+   :keywords: BRKGA, Biased Random Key Genetic Algorithm, Random Keys, Single-objective Optimization, Genetic Algorithm, Python
+
++++
+
 # BRKGA: Biased Random Key Genetic Algorithm
 
 
@@ -79,15 +89,15 @@ from pymoo.algorithms.soo.nonconvex.brkga import BRKGA
 from pymoo.optimize import minimize
 
 algorithm = BRKGA(
-    n_elites=200,
-    n_offsprings=700,
-    n_mutants=100,
+    n_elites=100,
+    n_offsprings=300,
+    n_mutants=50,
     bias=0.7,
     eliminate_duplicates=MyElementwiseDuplicateElimination())
 
 res = minimize(problem,
                algorithm,
-               ("n_gen", 75),
+               ("n_gen", 50),
                seed=1,
                verbose=False)
 

@@ -64,7 +64,7 @@ For MacOSX and Windows **compiled** packages are available.  For Linux the packa
 
 .. code:: bash
 
-    # For visualization features (matplotlib-based plotting)
+    # For animation / video / live-streaming visualization (matplotlib ships with core pymoo)
     pip install -U pymoo[visualization]
     
     # For parallelization features (joblib, dask, ray)
@@ -74,7 +74,7 @@ For MacOSX and Windows **compiled** packages are available.  For Linux the packa
     pip install -U pymoo[full]
 ```
 
-**Visualization**: Includes matplotlib for creating plots, animations, and interactive visualizations of optimization results.
+**Visualization**: matplotlib (static plots) ships with core pymoo; this extra adds `pyrecorder` for animations, video export, and interactive/live visualizations of optimization runs.
 
 **Parallelization**: Includes joblib, dask, and ray for distributed and parallel evaluation of objective functions across multiple cores or machines.
 
@@ -108,7 +108,7 @@ To install the current release candidate you simply have to add `--pre` to the i
 
 +++
 
-If you intend to use not the latest development, select the branch you intend to use (below it is master) and install it by:
+If you intend to use not the latest development, select the branch you intend to use (below it is main) and install it by:
 
 ```{raw-cell}
 :raw_mimetype: text/restructuredtext
@@ -151,17 +151,7 @@ Or execute the same command by
     python setup.py build_ext --inplace
 ```
 
-Or if Cython shall be used to create the `cpp` files from scratch use
-
-```{raw-cell}
-:raw_mimetype: text/restructuredtext
-
-.. code:: bash
-
-    python setup.py build_ext --inplace --cythonize
-```
-
-All the commands above will show you detailed error messages if the compilation has failed.
+Both commands will show you detailed error messages if the compilation has failed.
 
 +++
 
@@ -193,7 +183,7 @@ Otherwise, create a new python environment with NumPy preinstalled and activate 
 
 .. code:: bash
 
-    conda create -n pymoo -y python==3.9 numpy
+    conda create -n pymoo -y python==3.12 numpy
     conda activate pymoo
     pip install -U pymoo
 ```

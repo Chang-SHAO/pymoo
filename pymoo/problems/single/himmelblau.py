@@ -1,3 +1,5 @@
+"""Himmelblau single-objective test problem."""
+
 from pymoo.core.problem import Problem
 
 
@@ -12,4 +14,9 @@ class Himmelblau(Problem):
         return 0
 
     def _calc_pareto_set(self):
-        return [[3.0, 2.0], [-2.805118, 3.131312], [-3.779310, -3.283186], [3.584428, -1.848126]]
+        return [
+            [3.0, 2.0],
+            [-2.805118, 3.131312],
+            [-3.779310, -3.283186],
+            [3.584428, -1.848126],
+        ]

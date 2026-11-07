@@ -78,7 +78,7 @@ algorithm = CMOPSO(
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 200),
+               ('n_gen', 80),
                seed=1,
                verbose=False)
 
@@ -104,7 +104,7 @@ problem = get_problem("zdt2")
 
 # Customized CMOPSO with different parameters
 algorithm = CMOPSO(
-    pop_size=150,           # Larger population for better diversity
+    pop_size=100,           # Larger population for better diversity
     max_velocity_rate=0.3,  # Higher velocity for more exploration
     elite_size=20,          # Larger elite archive
     mutation_rate=0.3,      # Lower mutation rate for more exploitation
@@ -114,7 +114,7 @@ algorithm = CMOPSO(
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 300),
+               ('n_gen', 120),
                seed=1,
                verbose=False)
 
@@ -140,6 +140,8 @@ Scatter().add(res.F, facecolor="none", edgecolor="blue").show()
 
 +++
 
-### Implementation
+### Acknowledgement
 
-This algorithm has been implemented by [Gideon Oludeyi](https://github.com/gideonoludeyi) and is based on the original paper by Zhang et al. (2018). The implementation follows the competitive learning strategy with binary tournament selection on elites to maintain diversity and convergence in multi-objective optimization problems. 
+The CMOPSO implementation in pymoo was contributed by [Gideon Oludeyi](https://github.com/gideonoludeyi), based on the original paper by Zhang et al. (2018), following the competitive-learning strategy with binary tournament selection on elites.
+
+*Thank you for the contribution — pymoo grows through community contributions like this one.*

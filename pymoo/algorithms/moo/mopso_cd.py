@@ -1,7 +1,10 @@
+"""Multi-objective particle swarm optimization with crowding distance (MOPSO-CD)."""
+
 import numpy as np
 
 from pymoo.core.algorithm import Algorithm
 from pymoo.core.population import Population
+from pymoo.core.sampling import Sampling
 from pymoo.docs import parse_doc_string
 from pymoo.operators.repair.to_bound import set_to_bounds_if_outside
 from pymoo.operators.sampling.rnd import FloatRandomSampling
@@ -10,47 +13,38 @@ from pymoo.termination.default import DefaultMultiObjectiveTermination
 from pymoo.util import default_random_state
 from pymoo.util.archive import MultiObjectiveArchive
 from pymoo.util.display.multi import MultiObjectiveOutput
+from pymoo.util.display.output import Output
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 
 
 class MOPSO_CD(Algorithm):
-    """
-    Multi-Objective Particle Swarm Optimization with Crowding Distance (MOPSO-CD) algorithm.
+    """Multi-Objective Particle Swarm Optimization with Crowding Distance (MOPSO-CD) algorithm.
 
     This implementation extends MOPSO with a crowding distance mechanism for leader selection
     and archive management to ensure a well-distributed Pareto front, suitable for problems
     like MO-HalfCheetah in multi-objective reinforcement learning.
 
-    Parameters
-    ----------
-    pop_size : int
-        The population size (number of particles)
-    w : float
-        Inertia weight
-    c1 : float
-        Cognitive parameter (personal best influence)
-    c2 : float
-        Social parameter (global best influence)
-    max_velocity_rate : float
-        Maximum velocity rate relative to the variable range
-    archive_size : int
-        Maximum size of the external archive
-    sampling : Sampling
-        Sampling strategy for initialization
-    output : Output
-        Output display
+    Args:
+        pop_size: The population size (number of particles)
+        w: Inertia weight
+        c1: Cognitive parameter (personal best influence)
+        c2: Social parameter (global best influence)
+        max_velocity_rate: Maximum velocity rate relative to the variable range
+        archive_size: Maximum size of the external archive
+        sampling: Sampling strategy for initialization
+        output: Output display
     """
 
     def __init__(
         self,
-        pop_size=100,
-        w=0.6,  # Increased for better exploration
-        c1=2.0,
-        c2=2.0,
-        max_velocity_rate=0.5,  # Increased for better exploration
-        archive_size=200,  # Increased for better diversity
-        sampling=FloatRandomSampling(),
-        output=MultiObjectiveOutput(),
+        pop_size: int = 100,
+        w: float = 0.6,  # Increased for better exploration
+        c1: float = 2.0,
+        c2: float = 2.0,
+        max_velocity_rate: float = 0.5,  # Increased for better exploration
+        archive_size: int = 200,  # Increased for better diversity
+        sampling: Sampling = FloatRandomSampling(),
+        output: Output = MultiObjectiveOutput(),
         **kwargs,
     ):
         super().__init__(output=output, **kwargs)
@@ -76,7 +70,7 @@ class MOPSO_CD(Algorithm):
         self.random_state = default_random_state(kwargs.get("seed"))
 
     def _setup(self, problem, **kwargs):
-        """Setup the algorithm for the given problem"""
+        """Setup the algorithm for the given problem."""
         super()._setup(problem, **kwargs)
 
         # Initialize the external archive
@@ -87,29 +81,21 @@ class MOPSO_CD(Algorithm):
         self.v_max = self.max_velocity_rate * (xu - xl)
 
         # Initialize particles, velocities, and personal bests
-        self.pop = self.sampling.do(
-            problem, self.pop_size, random_state=self.random_state
-        )
-        self.velocities = self.random_state.uniform(
-            -self.v_max, self.v_max, (self.pop_size, problem.n_var)
-        )
+        self.pop = self.sampling.do(problem, self.pop_size, random_state=self.random_state)
+        self.velocities = self.random_state.uniform(-self.v_max, self.v_max, (self.pop_size, problem.n_var))
         self.pbest = self.pop.copy()  # Personal bests
-        self.pbest_f = np.full(
-            (self.pop_size, problem.n_obj), np.inf
-        )  # Initialize with inf
+        self.pbest_f = np.full((self.pop_size, problem.n_obj), np.inf)  # Initialize with inf
 
         # Evaluate initial population to set personal best objectives
         self.evaluator.eval(self.problem, self.pop)
 
     def _initialize_infill(self):
-        """Initialize the population and velocities"""
+        """Initialize the population and velocities."""
         # Initialize population using sampling
         pop = self.sampling.do(self.problem, self.pop_size, random_state=self.random_state)
 
         # Initialize velocities randomly
-        self.velocities = self.random_state.uniform(
-            -self.v_max, self.v_max, size=(self.pop_size, self.problem.n_var)
-        )
+        self.velocities = self.random_state.uniform(-self.v_max, self.v_max, size=(self.pop_size, self.problem.n_var))
 
         # Initialize personal best (initially same as current positions)
         self.pbest = pop.copy()
@@ -117,7 +103,7 @@ class MOPSO_CD(Algorithm):
         return pop
 
     def _initialize_advance(self, infills=None, **kwargs):
-        """Initialize after evaluation"""
+        """Initialize after evaluation."""
         self.pop = infills
 
         # Update archive with initial population
@@ -128,7 +114,7 @@ class MOPSO_CD(Algorithm):
         self.pbest_f = infills.get("F").copy()
 
     def _infill(self):
-        """Generate new solutions using PSO operators"""
+        """Generate new solutions using PSO operators."""
         # Create new population
         X_new = np.zeros((self.pop_size, self.problem.n_var))
 
@@ -150,9 +136,7 @@ class MOPSO_CD(Algorithm):
             self.velocities[i] = self.w * self.velocities[i] + cognitive + social
 
             # Apply velocity bounds
-            self.velocities[i] = set_to_bounds_if_outside(
-                self.velocities[i], -self.v_max, self.v_max
-            )
+            self.velocities[i] = set_to_bounds_if_outside(self.velocities[i], -self.v_max, self.v_max)
 
             # Update position
             X_new[i] = self.pop[i].X + self.velocities[i]
@@ -164,7 +148,7 @@ class MOPSO_CD(Algorithm):
         return Population.new("X", X_new)
 
     def _advance(self, infills=None, **kwargs):
-        """Advance the algorithm state"""
+        """Advance the algorithm state."""
         if infills is None:
             return
 
@@ -179,7 +163,7 @@ class MOPSO_CD(Algorithm):
         self.pop = infills
 
     def _update_archive(self, pop):
-        """Update the external archive with non-dominated solutions using crowding distance"""
+        """Update the external archive with non-dominated solutions using crowding distance."""
         if len(pop) == 0:
             return self.archive
 
@@ -191,7 +175,7 @@ class MOPSO_CD(Algorithm):
 
         # Find non-dominated solutions
         F = combined.get("F")
-        I = self.nds.do(F, only_non_dominated_front=True)
+        I = self.nds.do(F, only_non_dominated_front=True)  # noqa: E741
         non_dominated = combined[I]
 
         # Apply archive size limit using crowding distance
@@ -206,9 +190,7 @@ class MOPSO_CD(Algorithm):
             while len(selected_indices) < self.archive_size and remaining_indices:
                 # Tournament selection favoring higher crowding distance
                 tournament_size = min(3, len(remaining_indices))
-                tournament_indices = self.random_state.choice(
-                    remaining_indices, size=tournament_size, replace=False
-                )
+                tournament_indices = self.random_state.choice(remaining_indices, size=tournament_size, replace=False)
 
                 # Select the one with highest crowding distance in tournament
                 best_idx = tournament_indices[np.argmax(crowding[tournament_indices])]
@@ -218,12 +200,10 @@ class MOPSO_CD(Algorithm):
             non_dominated = non_dominated[selected_indices]
 
         # Create new archive
-        return MultiObjectiveArchive(
-            individuals=non_dominated, max_size=self.archive_size
-        )
+        return MultiObjectiveArchive(individuals=non_dominated, max_size=self.archive_size)
 
     def _select_diverse_leaders(self):
-        """Select diverse leaders for all particles"""
+        """Select diverse leaders for all particles."""
         leaders = []
 
         if len(self.archive) == 0:
@@ -266,7 +246,7 @@ class MOPSO_CD(Algorithm):
         return leaders
 
     def _update_pbest(self, new_pop):
-        """Update personal best positions"""
+        """Update personal best positions."""
         for i in range(len(new_pop)):
             # Compare new position with personal best
             if self._dominates(new_pop[i].F, self.pbest_f[i]):
@@ -294,11 +274,11 @@ class MOPSO_CD(Algorithm):
                         self.pbest_f[i] = new_pop[i].F.copy()
 
     def _dominates(self, f1, f2):
-        """Check if f1 dominates f2"""
+        """Check if f1 dominates f2."""
         return np.all(f1 <= f2) and np.any(f1 < f2)
 
     def _set_optimum(self, **kwargs):
-        """Set the optimum solutions from the archive"""
+        """Set the optimum solutions from the archive."""
         if len(self.archive) > 0:
             self.opt = self.archive.copy()
         else:

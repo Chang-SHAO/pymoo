@@ -1,3 +1,5 @@
+"""Exponential Search algorithm for univariate optimization."""
+
 import numpy as np
 
 from pymoo.core.algorithm import Algorithm
@@ -8,7 +10,6 @@ from pymoo.termination.default import DefaultSingleObjectiveTermination
 
 
 class ExponentialSearch(Algorithm):
-
     def __init__(self, delta=0.05, **kwargs):
         super().__init__(**kwargs)
         self.termination = DefaultSingleObjectiveTermination()
